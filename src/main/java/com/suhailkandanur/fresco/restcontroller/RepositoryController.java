@@ -22,8 +22,8 @@ public class RepositoryController {
     private RabbitTemplate rabbitTemplate;
 
     @PostMapping("/repository")
-    public String createRepository(String name, String description, long quota) {
-        logger.info("received repository creation request [name: {}, description: {}, quota: {}", name, description, quota);
+    public String createRepository(String name, String description) {
+        logger.info("received repository creation request [name: {}, description: {}, quota: {}", name, description, 1000L);
         String token = UUID.randomUUID().toString();
 
         return token;
