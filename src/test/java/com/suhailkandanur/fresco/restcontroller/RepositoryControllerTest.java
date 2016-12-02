@@ -14,7 +14,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,23 +37,44 @@ public class RepositoryControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    private static final HttpHeaders jsonServiceHeaders = new HttpHeaders();
+
+    private static final HttpMessageConverter jackson2HttpMessageConverter = new MappingJackson2HttpMessageConverter();
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeClass
+    public static void initialize() {
+        jsonServiceHeaders.setContentType(MediaType.APPLICATION_JSON);
+    }
+
     @Before
     public void setUp() {
-
+        logger.info("Setting up tests");
+        this.restTemplate.getRestTemplate().getMessageConverters().add(jackson2HttpMessageConverter);
     }
 
     @Test
     public void testRepositoryCreation() throws JsonProcessingException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("name", "testRepository");
-        params.put("description", "test repository");
-        params.put("quota", 10000L);
-        String request = new ObjectMapper().writeValueAsString(params);
-        logger.info("request: {}", request);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> entity = new HttpEntity<String>(request,headers);
+        Map<String, String> request = new HashMap<>();
+        request.put("name", "testRepository");
+        request.put("description", "test repository");
+        String requestJson = objectMapper.writeValueAsString(request);
+        HttpEntity<String> entity = new HttpEntity<String>(requestJson, jsonServiceHeaders);
         String token = this.restTemplate.postForObject("/repository", entity, String.class);
+        logger.info("response: {}", token);
         assertThat(token).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    public void testRepositoryCreationFailure() throws JsonProcessingException {
+        Map<String, String> params = new HashMap<>();
+        params.put("name", null);
+        params.put("description", "test repository");
+        String requestJson = objectMapper.writeValueAsString(params);
+        HttpEntity<String> stringHttpEntity = new HttpEntity<>(requestJson, jsonServiceHeaders);
+        String response = this.restTemplate.postForObject("/repository", stringHttpEntity, String.class);
+        //logger.info("response: {}", response);
+        assertThat(response).isEqualTo(null);
     }
 }
