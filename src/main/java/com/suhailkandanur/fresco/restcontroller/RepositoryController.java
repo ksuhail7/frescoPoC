@@ -1,5 +1,6 @@
 package com.suhailkandanur.fresco.restcontroller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class RepositoryController {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryController.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
@@ -35,6 +38,12 @@ public class RepositoryController {
         }
         logger.info("received repository creation request [name: {}, description: {}, quota: {}", name, description, quota);
         String token = UUID.randomUUID().toString();
+        Map<String, String> frescoRequestMap = new HashMap<>();
+        frescoRequestMap.put("token", token);
+        frescoRequestMap.put("name", name);
+        frescoRequestMap.put("description", description);
+        String requestJson = objectMapper.writeValueAsString(frescoRequestMap);
+        rabbitTemplate.convertAndSend("fresco", "repository", requestJson);
         return token;
     }
 
