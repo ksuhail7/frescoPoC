@@ -19,7 +19,7 @@ public class WelcomeController {
     @GetMapping("/welcome")
     public String welcome() {
         String token = UUID.randomUUID().toString();
-        rabbitTemplate.convertAndSend("fresco", "", token);
+        rabbitTemplate.convertAndSend("fresco", "repository", token);
         return "Welcome to Fresco [" + token + "]";
 
     }
