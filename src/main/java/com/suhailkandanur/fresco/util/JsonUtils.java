@@ -15,6 +15,6 @@ public class JsonUtils {
     }
 
     public static <T> String convertObjectToJsonStr(T object) throws IOException {
-        return objectMapper.writeValueAsString(object);
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
     }
 }
