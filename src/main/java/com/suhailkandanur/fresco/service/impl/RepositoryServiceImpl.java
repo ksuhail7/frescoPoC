@@ -62,9 +62,13 @@ public class RepositoryServiceImpl implements RepositoryService {
 
         //TODO: lock the repository before continuing
         Path frescoRootPath = fileSystemPath.resolve("fresco");
-        Files.createDirectories(frescoRootPath);
+        if(Files.notExists(frescoRootPath)) Files.createDirectories(frescoRootPath);
 
         Path repositoryRoot = frescoRootPath.resolve(repository.getName());
+        if(Files.exists(repositoryRoot)) {
+            logger.error("repository root directory '{}' already exists, cannot create repository on filesystem", repositoryRoot);
+            return;
+        }
         Files.createDirectories(repositoryRoot);
 
         Path storesRootPath = repositoryRoot.resolve("stores");
