@@ -14,11 +14,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,9 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class RepositoryControllerTest {
+public class FrescoRepoControllerTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(RepositoryControllerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(FrescoRepoControllerTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;

@@ -1,17 +1,20 @@
 package com.suhailkandanur.fresco.entity;
 
-import java.io.Serializable;
+import org.springframework.data.annotation.Id;
 
 /**
  * Created by suhail on 2016-12-01.
  */
-public class Repository implements Serializable {
+public class FrescoRepo {
+
+    @Id
+    private int id;
     private String name;
     private String description;
     private long quota;
     private boolean created;
     private String rootPath;
-
+    //private FolderLock folderLock;
 
     public boolean isCreated() {
         return created;
@@ -21,13 +24,13 @@ public class Repository implements Serializable {
         this.created = created;
     }
 
-    public Repository(String name, String description, long quota) {
+    public FrescoRepo(String name, String description, long quota) {
         this.name = name;
         this.description = description;
         this.quota = quota;
     }
 
-    public Repository() {
+    public FrescoRepo() {
 
     }
 
@@ -53,5 +56,10 @@ public class Repository implements Serializable {
 
     public void setRootPath(String rootPath) {
         this.rootPath = rootPath;
+        //folderLock = new FolderLock(rootPath);
+    }
+
+    public int getId() {
+        return this.id;
     }
 }

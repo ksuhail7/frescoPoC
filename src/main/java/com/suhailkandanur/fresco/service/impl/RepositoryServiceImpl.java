@@ -1,8 +1,8 @@
 package com.suhailkandanur.fresco.service.impl;
 
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
-import com.suhailkandanur.fresco.dataaccess.RepositoryDAO;
-import com.suhailkandanur.fresco.entity.Repository;
+import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
+import com.suhailkandanur.fresco.entity.FrescoRepo;
 import com.suhailkandanur.fresco.service.RepositoryService;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
@@ -31,62 +31,71 @@ public class RepositoryServiceImpl implements RepositoryService {
     private FrescoConfiguration configuration;
 
     @Autowired
-    private RepositoryDAO repositoryDAO;
+    private FrescoRepoRepository repositoryDAO;
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
     @Override
     @Transactional
-    public void processMessage(String message) throws IOException {
+    public void processMessage(String message) throws Exception {
         Map<String, String> request = JsonUtils.convertStrToJson(message, HashMap.class);
         logger.info("received message: {}, object: {}", message, request);
-        Optional<Repository> repositoryInDb = repositoryDAO.findRepositoryByName(request.get("name"));
+        Optional<FrescoRepo> repositoryInDb = Optional.empty(); //repositoryDAO.findRepositoryByName(request.get("name"));
         if (repositoryInDb.isPresent()) {
-            logger.error("repository with name '{}' already present, cannot create a new one", request.get("name"));
+            logger.error("frescoRepo with name '{}' already present, cannot create a new one", request.get("name"));
             return;
         }
-        Repository repository = new Repository(request.get("name"),
+        FrescoRepo frescoRepo = new FrescoRepo(request.get("name"),
                 request.get("description"),
                 Long.valueOf(request.getOrDefault("quota", "1000000")));
-        createRepository(repository);
-        writeEntryToDatabase(repository);
+        createRepository(frescoRepo);
+        writeEntryToDatabase(frescoRepo);
     }
 
-    void createRepository(Repository repository) throws IOException {
-        Objects.requireNonNull(repository);
+    boolean createRepository(FrescoRepo frescoRepo) throws Exception {
+        Objects.requireNonNull(frescoRepo);
         Path fileSystemPath = Paths.get(configuration.getFileSystem());
         if (Files.notExists(fileSystemPath)) {
             logger.error("root file system path '{}' does not exist", fileSystemPath);
-            return;
+            return false;
         }
 
-        //TODO: lock the repository before continuing
-        Path frescoRootPath = fileSystemPath.resolve("fresco");
-        if(Files.notExists(frescoRootPath)) Files.createDirectories(frescoRootPath);
+        //TODO: lock the frescoRepo before continuing
+        //Boolean status = frescoRepo.<Boolean>withLockOn(() -> {
+            try {
+                Path frescoRootPath = fileSystemPath.resolve("fresco");
+                if (Files.notExists(frescoRootPath)) Files.createDirectories(frescoRootPath);
 
-        Path repositoryRoot = frescoRootPath.resolve(repository.getName());
-        if(Files.exists(repositoryRoot)) {
-            logger.error("repository root directory '{}' already exists, cannot create repository on filesystem", repositoryRoot);
-            return;
-        }
-        Files.createDirectories(repositoryRoot);
+                Path repositoryRoot = frescoRootPath.resolve(frescoRepo.getName());
+                if (Files.exists(repositoryRoot)) {
+                    logger.error("frescoRepo root directory '{}' already exists, cannot create frescoRepo on filesystem",
+                            repositoryRoot);
+                    return false;
+                }
+                Files.createDirectories(repositoryRoot);
 
-        Path storesRootPath = repositoryRoot.resolve("stores");
-        Files.createDirectories(storesRootPath);
+                Path storesRootPath = repositoryRoot.resolve("stores");
+                Files.createDirectories(storesRootPath);
 
-        Path metaDataFile = repositoryRoot.resolve("meta.inf");
-        if (Files.notExists(metaDataFile)) {
-            Path metaDataFileTmp = repositoryRoot.resolve(".meta.inf.tmp");
-            if(Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
-            if (FileUtils.writeToFile(metaDataFileTmp, JsonUtils.convertObjectToJsonStr(repository)) != null) {
-                Files.move(metaDataFileTmp, metaDataFile);
-                if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
-                logger.info("successfully created meta data file {}", metaDataFile);
+                Path metaDataFile = repositoryRoot.resolve("meta.inf");
+                if (Files.notExists(metaDataFile)) {
+                    Path metaDataFileTmp = repositoryRoot.resolve(".meta.inf.tmp");
+                    if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
+                    if (FileUtils.writeToFile(metaDataFileTmp, JsonUtils.convertObjectToJsonStr(frescoRepo)) != null) {
+                        Files.move(metaDataFileTmp, metaDataFile);
+                        if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
+                        logger.info("successfully created meta data file {}", metaDataFile);
+                    }
+                }
+             return true;
+            } catch (IOException ioe) {
+                logger.error("error while creating frescoRepo, message: {}", ioe.getMessage());
+                return false;
             }
-        }
+        //});
     }
 
-    void writeEntryToDatabase(Repository repository) {
+    void writeEntryToDatabase(FrescoRepo repository) {
         repositoryDAO.save(repository);
     }
 }
