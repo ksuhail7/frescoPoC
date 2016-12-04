@@ -6,9 +6,6 @@ import org.springframework.data.annotation.Id;
  * Created by suhail on 2016-12-01.
  */
 public class FrescoRepo {
-
-    @Id
-    private int id;
     private String name;
     private String description;
     private long quota;
@@ -59,7 +56,4 @@ public class FrescoRepo {
         //folderLock = new FolderLock(rootPath);
     }
 
-    public int getId() {
-        return this.id;
-    }
 }
