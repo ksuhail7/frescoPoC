@@ -4,3 +4,14 @@ gradle/
 build/
 gradlew
 gradlew.bat
+.editorconfig
+.gitignore
+README.md
+angular-cli.json
+e2e/
+frescoportal.iml
+karma.conf.js
+package.json
+protractor.conf.js
+src/
+tslint.json
