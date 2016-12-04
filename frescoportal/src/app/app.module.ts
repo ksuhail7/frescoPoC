@@ -9,6 +9,8 @@ import {RepositoryComponent} from './repository/repo.component';
 import {RepositoryService} from './repository/repo.service';
 import {AppRoutingModule} from "./app-routing.module";
 
+import './rxjs-extensions';
+
 @NgModule({
   declarations: [
     AppComponent,

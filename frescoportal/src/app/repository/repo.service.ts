@@ -14,14 +14,16 @@ export class RepositoryService {
 
   private frescoUrl = 'http://localhost:9092';
 
+  url = `${this.frescoUrl}/repository`;
+
   create(repo: Repository): Promise<Repository> {
-    const url = `${this.frescoUrl}/repository`;
     console.debug("sending request ", JSON.stringify(repo));
-    return this.http.post(url, JSON.stringify(repo), {headers: this.headers})
+    return this.http.post(this.url, JSON.stringify(repo), {headers: this.headers})
       .toPromise().
       then(res => {
         console.debug('received response ', res);
-        return res;
+        //TODO: check the response and return repo accordingly.
+        return repo;
       })
       .catch(this.handleError);
   }
@@ -29,6 +31,16 @@ export class RepositoryService {
   private handleError(error: any): Promise<any> {
     console.error('An error occured', error);
     return Promise.reject(error.message || error);
+  }
+
+  getAllRepositories(): Promise<Repository[]> {
+    return this.http
+      .get(this.url)
+      .toPromise()
+      .then(response => {
+        console.debug('response ' , response.json());
+        return response.json() as Repository[];})
+      .catch(this.handleError);
   }
 
 }

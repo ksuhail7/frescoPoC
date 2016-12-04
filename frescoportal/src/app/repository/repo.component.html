@@ -1,4 +1,21 @@
 <div class="container">
+  <div>
+    <h3>List of Repositories</h3>
+    <table class="table table=sm">
+      <thead class="thead-inverse">
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let repo of repositories">
+        <td class="badge">{{repo.name}}</td>
+        <td>{{repo.description}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
   <div [hidden]="submitted">
   <h3>Create Repository</h3>
   <form (ngSubmit) = "onSubmit()" #repositoryForm="ngForm">

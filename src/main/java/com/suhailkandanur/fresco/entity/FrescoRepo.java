@@ -1,5 +1,6 @@
 package com.suhailkandanur.fresco.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 
 /**
@@ -13,6 +14,7 @@ public class FrescoRepo {
     private String rootPath;
     //private FolderLock folderLock;
 
+    @JsonIgnore
     public boolean isCreated() {
         return created;
     }
@@ -39,6 +41,7 @@ public class FrescoRepo {
         return description;
     }
 
+    @JsonIgnore
     public long getQuota() {
         return quota;
     }
@@ -47,6 +50,7 @@ public class FrescoRepo {
         this.name = name;
     }
 
+    @JsonIgnore
     public String getRootPath() {
         return this.rootPath;
     }

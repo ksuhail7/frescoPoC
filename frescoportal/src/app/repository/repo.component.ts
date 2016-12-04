@@ -13,6 +13,7 @@ export class RepositoryComponent implements OnInit {
 
   constructor(private repoService: RepositoryService) {}
   submitted = false;
+  repositories: Repository[];
 
   model = new Repository("", "");
 
@@ -21,6 +22,7 @@ export class RepositoryComponent implements OnInit {
     this.repoService.create(this.model)
     .then(repo => {
       console.debug('repository added ', repo);
+      this.repositories.push(repo);
     });
   }
 
@@ -28,5 +30,15 @@ export class RepositoryComponent implements OnInit {
     this.model = new Repository("", "");
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.getAllRepositories();
+  }
+
+  getAllRepositories(): void {
+    this.repoService
+      .getAllRepositories()
+      .then(repos => {
+        console.debug('repository list ', repos);
+        this.repositories = repos});
+  }
 }
