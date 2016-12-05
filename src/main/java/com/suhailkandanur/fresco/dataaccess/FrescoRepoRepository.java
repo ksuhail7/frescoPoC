@@ -8,5 +8,6 @@ import org.springframework.stereotype.Repository;
  * Created by suhail on 2016-12-03.
  */
 @Repository
-public interface FrescoRepoRepository extends MongoRepository<FrescoRepo, Integer> {
+public interface FrescoRepoRepository extends MongoRepository<FrescoRepo, String> {
+    FrescoRepo findFrescoRepoByName(String name);
 }

@@ -1,13 +1,9 @@
 package com.suhailkandanur.fresco.entity;
 
-import org.springframework.data.annotation.Id;
-
 /**
  * Created by suhail on 2016-12-03.
  */
 public class Store {
-    @Id
-    private int id;
     private String name;
     private String description;
     private int repositoryRef;
@@ -26,10 +22,6 @@ public class Store {
 
     public Store() {this(null, null, -1);}
 
-    public int getId() {
-        return id;
-    }
-
     public String getName() {
         return name;
     }
@@ -44,10 +36,6 @@ public class Store {
 
     public String getRepositoryRefToken() {
         return repositoryRefToken;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public void setName(String name) {

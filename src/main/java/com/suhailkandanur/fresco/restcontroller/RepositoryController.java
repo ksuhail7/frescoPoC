@@ -42,11 +42,11 @@ public class RepositoryController {
         }
         logger.info("received repository creation request [name: {}, description: {}, quota: {}", name, description, quota);
         String token = UUID.randomUUID().toString();
-        Map<String, String> frescoRequestMap = new HashMap<>();
-        frescoRequestMap.put("token", token);
-        frescoRequestMap.put("name", name);
-        frescoRequestMap.put("description", description);
-        String requestJson = objectMapper.writeValueAsString(frescoRequestMap);
+        FrescoRepo repo = new FrescoRepo();
+        repo.setName(name);
+        repo.setDescription(description);
+        repo.setRefToken(token);
+        String requestJson = objectMapper.writeValueAsString(repo);
         rabbitTemplate.convertAndSend("fresco", "repository", requestJson);
         return token;
     }
@@ -58,7 +58,7 @@ public class RepositoryController {
     }
 
     @GetMapping(value="/repository/{id}")
-    public FrescoRepo getRepository(@PathVariable int id) {
+    public FrescoRepo getRepository(@PathVariable String id) {
         return repoRepository.findOne(id);
     }
 

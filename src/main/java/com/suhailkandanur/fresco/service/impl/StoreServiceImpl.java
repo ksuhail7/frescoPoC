@@ -1,6 +1,6 @@
 package com.suhailkandanur.fresco.service.impl;
 
-import com.rabbitmq.tools.json.JSONUtil;
+import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.dataaccess.StoreRepository;
 import com.suhailkandanur.fresco.entity.Store;
@@ -29,12 +29,25 @@ public class StoreServiceImpl implements RabbitQueueListener {
     @Autowired
     private FrescoRepoRepository repoRepository;
 
+    @Autowired
+    private FrescoConfiguration frescoConfiguration;
+
     @Override
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-store-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "store"))
     public void processMessage(String data) throws Exception {
         logger.info("received request {}", data);
         Store store = JsonUtils.convertStrToJson(data, Store.class);
         logger.info("store object: {}", store.getName());
+        writeEntryToDatabase(store);
+    }
+
+    public void createStoreOnFileSystem(Store store) {
+        String fileSystem = frescoConfiguration.getFileSystem();
+
+    }
+
+    public void writeEntryToDatabase(Store store) {
+        storeRepository.save(store);
     }
 
 
