@@ -3,11 +3,15 @@ package com.suhailkandanur.fresco.service.impl;
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.entity.FrescoRepo;
-import com.suhailkandanur.fresco.service.RepositoryService;
+import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +29,7 @@ import java.util.Optional;
  * Created by suhail on 2016-12-02.
  */
 @Service
-public class RepositoryServiceImpl implements RepositoryService {
+public class RepositoryServiceImpl implements RabbitQueueListener {
 
     @Autowired
     private FrescoConfiguration configuration;
@@ -37,19 +41,26 @@ public class RepositoryServiceImpl implements RepositoryService {
 
     @Override
     @Transactional
+    @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-repository-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "repository"))
     public void processMessage(String message) throws Exception {
-        Map<String, String> request = JsonUtils.convertStrToJson(message, HashMap.class);
-        logger.info("received message: {}, object: {}", message, request);
-        Optional<FrescoRepo> repositoryInDb = Optional.empty(); //repositoryDAO.findRepositoryByName(request.get("name"));
-        if (repositoryInDb.isPresent()) {
-            logger.error("frescoRepo with name '{}' already present, cannot create a new one", request.get("name"));
+        try {
+            Map<String, String> request = JsonUtils.convertStrToJson(message, HashMap.class);
+
+            logger.info("received message: {}, object: {}", message, request);
+            Optional<FrescoRepo> repositoryInDb = Optional.empty(); //repositoryDAO.findRepositoryByName(request.get("name"));
+            if (repositoryInDb.isPresent()) {
+                logger.error("frescoRepo with name '{}' already present, cannot create a new one", request.get("name"));
+                return;
+            }
+            FrescoRepo frescoRepo = new FrescoRepo(request.get("name"),
+                    request.get("description"),
+                    Long.valueOf(request.getOrDefault("quota", "1000000")));
+            createRepository(frescoRepo);
+            writeEntryToDatabase(frescoRepo);
+        } catch(IOException ioe) {
+            logger.error("error processing request, message: {}", ioe.getMessage());
             return;
         }
-        FrescoRepo frescoRepo = new FrescoRepo(request.get("name"),
-                request.get("description"),
-                Long.valueOf(request.getOrDefault("quota", "1000000")));
-        createRepository(frescoRepo);
-        writeEntryToDatabase(frescoRepo);
     }
 
     boolean createRepository(FrescoRepo frescoRepo) throws Exception {

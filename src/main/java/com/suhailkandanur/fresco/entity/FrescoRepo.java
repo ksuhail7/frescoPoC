@@ -12,16 +12,7 @@ public class FrescoRepo {
     private long quota;
     private boolean created;
     private String rootPath;
-    //private FolderLock folderLock;
-
-    @JsonIgnore
-    public boolean isCreated() {
-        return created;
-    }
-
-    public void setCreated(boolean created) {
-        this.created = created;
-    }
+    private String refToken;
 
     public FrescoRepo(String name, String description, long quota) {
         this.name = name;
@@ -57,7 +48,15 @@ public class FrescoRepo {
 
     public void setRootPath(String rootPath) {
         this.rootPath = rootPath;
-        //folderLock = new FolderLock(rootPath);
+    }
+
+    @JsonIgnore
+    public boolean isCreated() {
+        return created;
+    }
+
+    public void setCreated(boolean created) {
+        this.created = created;
     }
 
 }

@@ -1,6 +1,8 @@
 package com.suhailkandanur.fresco.messaging;
 
 import com.suhailkandanur.fresco.service.RepositoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -16,35 +18,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfiguration {
 
-    @Bean
-    DirectExchange fanoutExchange() {
-        return (DirectExchange) ExchangeBuilder.directExchange("fresco").build();
-    }
-
-    @Bean
-    Queue queue() {
-        return QueueBuilder.durable("fresco-repository-request").build();
-    }
-
-    @Bean
-    Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with("repository");
-    }
-
-    @Bean
-    SimpleMessageListenerContainer container(ConnectionFactory connectionFactory,
-                                             MessageListenerAdapter listenerAdapter) {
-        SimpleMessageListenerContainer container = new SimpleMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
-        container.setQueueNames("fresco-repository-request");
-        container.setMessageListener(listenerAdapter);
-        return container;
-    }
-
-    @Bean
-    MessageListenerAdapter listenerAdapter(RepositoryService receiver) {
-        return new MessageListenerAdapter(receiver, "processMessage");
-    }
+    private static final Logger logger = LoggerFactory.getLogger(RabbitConfiguration.class);
 
     @Bean
     public ConnectionFactory connectionFactory() {
