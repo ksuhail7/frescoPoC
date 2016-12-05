@@ -13,16 +13,18 @@ public class Store {
     private int repositoryRef;
     private String repositoryRefToken;
 
-    private Store(String name, String description, int repositoryRef, String repositoryRefToken) {
+    public Store(String name, String description, int repositoryRef, String repositoryRefToken) {
         this.name = name;
         this.description = description;
         this.repositoryRef = repositoryRef;
         this.repositoryRefToken = repositoryRefToken;
     }
 
-    private Store(String name, String description, int repositoryRef) {
+    public Store(String name, String description, int repositoryRef) {
         this(name, description, repositoryRef, null);
     }
+
+    public Store() {this(null, null, -1);}
 
     public int getId() {
         return id;
@@ -42,6 +44,26 @@ public class Store {
 
     public String getRepositoryRefToken() {
         return repositoryRefToken;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setRepositoryRef(int repositoryRef) {
+        this.repositoryRef = repositoryRef;
+    }
+
+    public void setRepositoryRefToken(String repositoryRefToken) {
+        this.repositoryRefToken = repositoryRefToken;
     }
 
     public static class StoreBuilder {

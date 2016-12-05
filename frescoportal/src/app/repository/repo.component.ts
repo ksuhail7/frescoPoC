@@ -17,6 +17,10 @@ export class RepositoryComponent implements OnInit {
 
   model = new Repository("", "");
 
+  addCloseLink: string = "(+) New";
+
+  isCreationInProgress: boolean;
+
   onSubmit() {
     this.submitted = true;
     this.repoService.create(this.model)
@@ -40,5 +44,13 @@ export class RepositoryComponent implements OnInit {
       .then(repos => {
         console.debug('repository list ', repos);
         this.repositories = repos});
+  }
+
+  addNew() {
+    this.isCreationInProgress = !this.isCreationInProgress;
+    if(this.isCreationInProgress) {
+      this.newRepository();
+    }
+    this.addCloseLink = this.isCreationInProgress ? "Close" : "(+) New";
   }
 }

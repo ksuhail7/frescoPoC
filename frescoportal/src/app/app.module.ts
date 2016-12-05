@@ -10,11 +10,14 @@ import {RepositoryService} from './repository/repo.service';
 import {AppRoutingModule} from "./app-routing.module";
 
 import './rxjs-extensions';
+import {StoreComponent} from "./store/store.component";
+import {StoreService} from "./store/store.service";
 
 @NgModule({
   declarations: [
     AppComponent,
-    RepositoryComponent
+    RepositoryComponent,
+    StoreComponent
   ],
   imports: [
     BrowserModule,
@@ -22,7 +25,7 @@ import './rxjs-extensions';
     HttpModule,
     AppRoutingModule
   ],
-  providers: [RepositoryService],
+  providers: [RepositoryService, StoreService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

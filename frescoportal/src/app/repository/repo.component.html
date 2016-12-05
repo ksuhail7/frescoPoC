@@ -15,8 +15,9 @@
       </tr>
       </tbody>
     </table>
+    <a href="#" (click)="addNew(true)">{{addCloseLink}}</a>
   </div>
-  <div [hidden]="submitted">
+  <div [hidden]="!isCreationInProgress || submitted">
   <h3>Create Repository</h3>
   <form (ngSubmit) = "onSubmit()" #repositoryForm="ngForm">
   <div class="form-group">
@@ -44,6 +45,6 @@
       <div class="col-xs-3">Description</div>
       <div class="col-xs-9 pull-left">{{model.description}}</div>
     </div>
-    <button type="button" class="btn btn-default">Edit</button>
+    <button type="button" (click)="addNew(false)" class="btn btn-default">Close</button>
   </div>
 </div>
