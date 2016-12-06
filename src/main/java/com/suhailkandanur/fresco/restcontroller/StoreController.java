@@ -34,6 +34,11 @@ public class StoreController {
         return storeRepository.findAll();
     }
 
+    @GetMapping("/store/{id}")
+    public Store getStoreById(@PathVariable String id) {
+        return storeRepository.findOne(id);
+    }
+
     @PostMapping("/store")
     public Store createStore(@RequestBody Map<String, String> params) {
         String name = params.get("name");

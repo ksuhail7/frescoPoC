@@ -44,15 +44,19 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-repository-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "repository"))
     public void processMessage(String message) throws Exception {
         try {
-            Map<String, String> request = JsonUtils.convertStrToJson(message, HashMap.class);
 
-            logger.info("received message: {}, object: {}", message, request);
-            Optional<Repository> repositoryInDb = Optional.empty(); //repositoryDAO.findRepositoryByName(request.get("name"));
-            if (repositoryInDb.isPresent()) {
-                logger.error("repository with name '{}' already present, cannot create a new one", request.get("name"));
+            Repository repository = JsonUtils.convertStrToJson(message, Repository.class);
+
+            logger.info("received message: {}, object: {}", message, repository);
+            Repository repositoryInDb = repositoryDAO.findFrescoRepoByName(repository.getName());
+            if (repositoryInDb != null) {
+                logger.error("repository with name '{}' already present, cannot create a new one", repository.getName());
                 return;
             }
-            Repository repository = JsonUtils.convertStrToJson(message, Repository.class);
+
+
+            repository.setRootPath(Paths.get(configuration.getFileSystem(), "fresco", repository.getName()).toString());
+
             createRepository(repository);
             writeEntryToDatabase(repository);
         } catch(IOException ioe) {
@@ -63,19 +67,17 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
 
     boolean createRepository(Repository repository) throws Exception {
         Objects.requireNonNull(repository);
-        Path fileSystemPath = Paths.get(configuration.getFileSystem());
-        if (Files.notExists(fileSystemPath)) {
-            logger.error("root file system path '{}' does not exist", fileSystemPath);
-            return false;
-        }
+
 
         //TODO: lock the repository before continuing
         //Boolean status = repository.<Boolean>withLockOn(() -> {
             try {
-                Path frescoRootPath = fileSystemPath.resolve("fresco");
-                if (Files.notExists(frescoRootPath)) Files.createDirectories(frescoRootPath);
+                Path repositoryRoot = Paths.get(repository.getRootPath());
+                if (repositoryRoot != null && Files.notExists(repositoryRoot.getParent().getParent())) {
+                    logger.error("root file system path '{}' does not exist", repositoryRoot.getParent().getParent());
+                    return false;
+                }
 
-                Path repositoryRoot = frescoRootPath.resolve(repository.getName());
                 if (Files.exists(repositoryRoot)) {
                     logger.error("repository root directory '{}' already exists, cannot create repository on filesystem",
                             repositoryRoot);
@@ -86,16 +88,8 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
                 Path storesRootPath = repositoryRoot.resolve("stores");
                 Files.createDirectories(storesRootPath);
 
-                Path metaDataFile = repositoryRoot.resolve("meta.inf");
-                if (Files.notExists(metaDataFile)) {
-                    Path metaDataFileTmp = repositoryRoot.resolve(".meta.inf.tmp");
-                    if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
-                    if (FileUtils.writeToFile(metaDataFileTmp, JsonUtils.convertObjectToJsonStr(repository)) != null) {
-                        Files.move(metaDataFileTmp, metaDataFile);
-                        if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
-                        logger.info("successfully created meta data file {}", metaDataFile);
-                    }
-                }
+                //write meta.inf file
+                FileUtils.writeMetaInfFile(repositoryRoot, repository);
              return true;
             } catch (IOException ioe) {
                 logger.error("error while creating repository, message: {}", ioe.getMessage());

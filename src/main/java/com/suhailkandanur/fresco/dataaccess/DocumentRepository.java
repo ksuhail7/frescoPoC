@@ -1,6 +1,5 @@
 package com.suhailkandanur.fresco.dataaccess;
 
-import com.mongodb.Mongo;
 import com.suhailkandanur.fresco.entity.Document;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

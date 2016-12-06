@@ -1,10 +1,11 @@
 package com.suhailkandanur.fresco.service.impl;
 
-import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.dataaccess.StoreRepository;
+import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
+import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,12 @@ import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Created by suhail on 2016-12-04.
@@ -29,28 +36,55 @@ public class StoreServiceImpl implements RabbitQueueListener {
     @Autowired
     private FrescoRepoRepository repoRepository;
 
-    @Autowired
-    private FrescoConfiguration frescoConfiguration;
-
     @Override
+    @Transactional
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-store-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "store"))
-    public void processMessage(String data) throws Exception {
-        logger.info("received request {}", data);
-        Store store = JsonUtils.convertStrToJson(data, Store.class);
-        logger.info("store object: {}", store.getName());
-        createStoreOnFileSystem(store);
-        writeEntryToDatabase(store);
+    public void processMessage(String data) {
+        try {
+            Store store = JsonUtils.convertStrToJson(data, Store.class);
+            logger.info("received request: {}, store object: {}", data, store.getName());
+            if (store.getRepositoryId() == null) {
+                logger.error("repository id not specified, cannot create store");
+                return;
+            }
+            Repository repository = repoRepository.findOne(store.getRepositoryId());
+            if (repository == null) {
+                logger.error("unable to find repository with id '{}'", store.getRepositoryId());
+                return;
+            }
+            createStoreOnFileSystem(store, repository);
+            writeEntryToDatabase(store);
+        } catch (IOException ioe) {
+            return;
+        }
     }
 
-    public void createStoreOnFileSystem(Store store) {
-        String fileSystem = frescoConfiguration.getFileSystem();
+    public void createStoreOnFileSystem(Store store, Repository repository) throws IOException {
+        String fileSystem = repository.getRootPath();
+        Path repositoryRoot = Paths.get(fileSystem);
+        if (Files.notExists(repositoryRoot)) {
+            logger.error("repository path '{}' does not exists, cannot create store", repositoryRoot);
+            throw new IOException("repository path does not exists");
+        }
 
+        Path storePath = repositoryRoot.resolve("stores").resolve(store.getName());
+        if (Files.exists(storePath)) {
+            logger.error("store already exists at path '{}', cannot create a new one", storePath);
+            throw new IOException("store already exists");
+        }
+        Files.createDirectories(storePath);
+
+        Path metaInfFile = FileUtils.writeMetaInfFile(storePath, store);
+        //just make sure the meta.inf file is created
+        if (Files.notExists(metaInfFile)) {
+            logger.error("store meta.inf file not created for unknown reasons");
+            throw new IOException("unable to create meta.inf file for store");
+        }
     }
 
     public void writeEntryToDatabase(Store store) {
         storeRepository.save(store);
     }
-
 
 
 }
