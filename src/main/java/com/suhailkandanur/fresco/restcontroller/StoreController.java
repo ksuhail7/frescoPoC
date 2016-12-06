@@ -38,16 +38,14 @@ public class StoreController {
     public Store createStore(@RequestBody Map<String, String> params) {
         String name = params.get("name");
         String description = params.get("description");
-        String repositoryRefToken = params.get("repositoryRefToken");
-        int repositoryRef = Integer.valueOf(params.getOrDefault("repositoryRef", "-1"));
+        String repositoryId = params.getOrDefault("repositoryId", null);
         Objects.requireNonNull(name);
-        if(repositoryRefToken == null && repositoryRef < 0) {
+        if(repositoryId == null) {
             logger.error("repository must be specified");
             return null;
         }
         String storeRefToken = UUID.randomUUID().toString();
-        Store.StoreBuilder builder = new Store.StoreBuilder();
-        Store store = builder.name(name).description(description).repositoryRef(repositoryRef).repositoryRefToken(repositoryRefToken).build();
+        Store store = new Store(name, description, repositoryId, storeRefToken);
         try {
             rabbitTemplate.convertAndSend("fresco", "store", JsonUtils.convertObjectToJsonStr(store));
             return store;

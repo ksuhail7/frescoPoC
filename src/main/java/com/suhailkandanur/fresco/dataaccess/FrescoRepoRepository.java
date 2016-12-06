@@ -1,13 +1,12 @@
 package com.suhailkandanur.fresco.dataaccess;
 
-import com.suhailkandanur.fresco.entity.FrescoRepo;
+import com.suhailkandanur.fresco.entity.Repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
 
 /**
  * Created by suhail on 2016-12-03.
  */
-@Repository
-public interface FrescoRepoRepository extends MongoRepository<FrescoRepo, String> {
-    FrescoRepo findFrescoRepoByName(String name);
+@org.springframework.stereotype.Repository
+public interface FrescoRepoRepository extends MongoRepository<Repository, String> {
+    Repository findFrescoRepoByName(String name);
 }

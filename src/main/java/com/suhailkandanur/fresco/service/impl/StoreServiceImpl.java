@@ -38,6 +38,7 @@ public class StoreServiceImpl implements RabbitQueueListener {
         logger.info("received request {}", data);
         Store store = JsonUtils.convertStrToJson(data, Store.class);
         logger.info("store object: {}", store.getName());
+        createStoreOnFileSystem(store);
         writeEntryToDatabase(store);
     }
 

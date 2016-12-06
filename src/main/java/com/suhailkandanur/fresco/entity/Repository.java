@@ -1,11 +1,15 @@
 package com.suhailkandanur.fresco.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.data.annotation.Id;
 
 /**
  * Created by suhail on 2016-12-01.
  */
-public class FrescoRepo {
+public class Repository {
+
+    @Id
+    private String id;
     private String name;
     private String description;
     private long quota;
@@ -13,13 +17,14 @@ public class FrescoRepo {
     private String rootPath;
     private String refToken;
 
-    public FrescoRepo(String name, String description, long quota) {
+    public Repository(String name, String description, long quota) {
         this.name = name;
         this.description = description;
         this.quota = quota;
     }
 
-    public FrescoRepo() {
+    public Repository() {
+        this.quota = 100_000_000L;
 
     }
 
@@ -72,5 +77,9 @@ public class FrescoRepo {
 
     public void setQuota(long quota) {
         this.quota = quota;
+    }
+
+    public String getId() {
+        return this.id;
     }
 }

@@ -2,7 +2,7 @@ package com.suhailkandanur.fresco.restcontroller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
-import com.suhailkandanur.fresco.entity.FrescoRepo;
+import com.suhailkandanur.fresco.entity.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -32,7 +31,7 @@ public class RepositoryController {
     private FrescoRepoRepository repoRepository;
 
     @PostMapping(value = "/repository", consumes = "application/json")
-    public String createRepository(@RequestBody Map<String, String> params) throws Exception {
+    public Repository createRepository(@RequestBody Map<String, String> params) throws Exception {
         String name = params.get("name");
         String description = params.get("description");
         long quota = Long.valueOf(params.getOrDefault("quota", "100000000"));
@@ -42,23 +41,23 @@ public class RepositoryController {
         }
         logger.info("received repository creation request [name: {}, description: {}, quota: {}", name, description, quota);
         String token = UUID.randomUUID().toString();
-        FrescoRepo repo = new FrescoRepo();
+        Repository repo = new Repository();
         repo.setName(name);
         repo.setDescription(description);
         repo.setRefToken(token);
         String requestJson = objectMapper.writeValueAsString(repo);
         rabbitTemplate.convertAndSend("fresco", "repository", requestJson);
-        return token;
+        return repo;
     }
 
 
     @GetMapping(value="/repository")
-    public List<FrescoRepo> getRepositoriesList() {
+    public List<Repository> getRepositoriesList() {
         return repoRepository.findAll();
     }
 
     @GetMapping(value="/repository/{id}")
-    public FrescoRepo getRepository(@PathVariable String id) {
+    public Repository getRepository(@PathVariable String id) {
         return repoRepository.findOne(id);
     }
 

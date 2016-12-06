@@ -28,9 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class FrescoRepoControllerTest {
+public class RepositoryControllerTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(FrescoRepoControllerTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(RepositoryControllerTest.class);
 
     @Autowired
     private TestRestTemplate restTemplate;

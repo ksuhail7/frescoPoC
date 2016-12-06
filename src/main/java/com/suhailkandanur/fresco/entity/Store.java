@@ -1,26 +1,31 @@
 package com.suhailkandanur.fresco.entity;
 
+import org.springframework.data.annotation.Id;
+
 /**
  * Created by suhail on 2016-12-03.
  */
 public class Store {
+
+    @Id
+    private String id;
     private String name;
     private String description;
-    private int repositoryRef;
-    private String repositoryRefToken;
+    private String repositoryId;
+    private String refToken;
 
-    public Store(String name, String description, int repositoryRef, String repositoryRefToken) {
+    public Store(String name, String description, String repositoryId, String refToken) {
         this.name = name;
         this.description = description;
-        this.repositoryRef = repositoryRef;
-        this.repositoryRefToken = repositoryRefToken;
+        this.repositoryId = repositoryId;
+        this.refToken = refToken;
     }
 
-    public Store(String name, String description, int repositoryRef) {
-        this(name, description, repositoryRef, null);
+    public Store(String name, String description, String repositoryId) {
+        this(name, description, repositoryId, null);
     }
 
-    public Store() {this(null, null, -1);}
+    public Store() {this(null, null, null);}
 
     public String getName() {
         return name;
@@ -30,58 +35,31 @@ public class Store {
         return description;
     }
 
-    public int getRepositoryRef() {
-        return repositoryRef;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public String getRepositoryRefToken() {
-        return repositoryRefToken;
+    public String getRefToken() {
+        return refToken;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
+    public String getId() {
+        return this.id;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public void setRepositoryRef(int repositoryRef) {
-        this.repositoryRef = repositoryRef;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
-    public void setRepositoryRefToken(String repositoryRefToken) {
-        this.repositoryRefToken = repositoryRefToken;
-    }
-
-    public static class StoreBuilder {
-        private String repositoryRefToken;
-        private String name;
-        private String description;
-        private int repositoryRef;
-
-        public Store build() {
-            return new Store(name, description, repositoryRef, repositoryRefToken);
-        }
-
-        public StoreBuilder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public StoreBuilder description(String description) {
-            this.description = description;
-            return this;
-        }
-
-        public StoreBuilder repositoryRef(int repositoryRef) {
-            this.repositoryRef = repositoryRef;
-            return this;
-        }
-
-        public StoreBuilder repositoryRefToken(String repositoryRefToken) {
-            this.repositoryRefToken = repositoryRefToken;
-            return this;
-        }
+    public void setRefToken(String refToken) {
+        this.refToken = refToken;
     }
 }
