@@ -1,8 +1,8 @@
 package com.suhailkandanur.fresco.restcontroller;
 
-import com.suhailkandanur.fresco.entity.Document;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
-import org.springframework.http.ResponseEntity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -17,6 +17,8 @@ import java.util.Map;
 @RestController
 @CrossOrigin
 public class DocumentVersionController {
+
+    private static final Logger logger = LoggerFactory.getLogger(DocumentVersionController.class);
 
     @GetMapping("/documentversion/{storeId}/{docId}/latest")
     public DocumentVersion getLatestDocumentVersion(@PathVariable String storeId, @PathVariable String docId) {
