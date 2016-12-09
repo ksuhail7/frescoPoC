@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Created by suhail on 2016-12-06.
  */
-@RestController
+@RestController(value = "frescoDocumentController")
 @CrossOrigin
 public class DocumentController {
 
@@ -40,7 +40,7 @@ public class DocumentController {
         throw new NotImplementedException();
     }
 
-    @GetMapping("/document/{storeId}/{docId}")
+    @GetMapping("/document/{storeId}/{docId}/retrieve")
     public void retrieveFile(@PathVariable String storeId, @PathVariable String docId, HttpServletResponse response) {
         InputStream inputStream = null;
         try {
