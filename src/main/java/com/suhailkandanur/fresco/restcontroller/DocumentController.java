@@ -1,9 +1,11 @@
 package com.suhailkandanur.fresco.restcontroller;
 
+import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -23,11 +25,12 @@ public class DocumentController {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
 
-
+    @Autowired
+    private DocumentRepository documentRepository;
 
     @GetMapping("/document/{storeId}/{docId}")
     public Document getDocument(@PathVariable String storeId, @PathVariable String docId) {
-        throw new NotImplementedException();
+        return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
     }
 
     @PostMapping("/document")

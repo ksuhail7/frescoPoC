@@ -7,4 +7,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  * Created by suhail on 2016-12-05.
  */
 public interface DocumentRepository extends MongoRepository<Document, String> {
+    Document findDocumentByStoreIdAndDocumentId(String storeId, String docId);
 }
