@@ -35,7 +35,11 @@ public class DocumentController {
 
     @PostMapping("/document")
     public Document createDocument(@RequestBody Map<String, String> request) {
-        throw new NotImplementedException();
+        logger.info("create document entry point");
+        request.get("docId");
+        request.get("storeId");
+
+        return null;
     }
 
     @GetMapping("/document/{storeId}")
