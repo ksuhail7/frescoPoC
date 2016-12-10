@@ -15,8 +15,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,21 +51,27 @@ public class DocumentVersionController {
         throw new NotImplementedException();
     }
 
-    @PostMapping("/documentversion/{storeId}/{docId}/upload")
+    @PostMapping(value = "/documentversion/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")
     public Map<String, String> createDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
                                                  RedirectAttributes redirectAttributes) {
         logger.info("document version creation (post request with file upload) handler entry point");
         try {
-            File tempFile = File.createTempFile("fresco", ".bin", new File(configuration.getTempStagingDirection()));
-            logger.info("storing the uploaded file at temp staging location '{}'", tempFile.getAbsolutePath());
-            Files.copy(file.getInputStream(), Paths.get(tempFile.getAbsolutePath()));
+            String stagingLocation = configuration.getTempStagingDirection();
+            Path stagingPath = Paths.get(stagingLocation);
+            if (Files.notExists(stagingPath)) {
+                Files.createDirectories(stagingPath);
+            }
+            Path outputFile = Files.createTempFile(stagingPath, "fresco-", ".bin");
+            Files.copy(file.getInputStream(), outputFile, StandardCopyOption.REPLACE_EXISTING);
             String token = UUID.randomUUID().toString();
             Map<String, String> requestParamsMap = new HashMap<>();
             requestParamsMap.put("storeId", storeId);
             requestParamsMap.put("docId", docId);
-            requestParamsMap.put("fileLocation", tempFile.getAbsolutePath());
-            requestParamsMap.put("fileName", file.getName());
+            requestParamsMap.put("fileLocation", outputFile.toString());
+            requestParamsMap.put("fileName", file.getOriginalFilename());
             requestParamsMap.put("token", token);
+            String version = Long.toString(System.currentTimeMillis());
+            requestParamsMap.put("version", version);
             logger.info("sending message to 'fresco' exchange for async processing");
             rabbitTemplate.convertAndSend("fresco",
                     "documentversion",
@@ -75,9 +80,11 @@ public class DocumentVersionController {
             response.put("storeId", storeId);
             response.put("docId", docId);
             response.put("token", token);
+            response.put("version", version);
             return response;
         } catch (IOException ioe) {
             logger.error("unable to handle uploaded file content, error: {}", ioe.getMessage());
+            ioe.printStackTrace();
         }
         return null;
     }

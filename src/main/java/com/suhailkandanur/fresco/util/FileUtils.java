@@ -1,6 +1,9 @@
 package com.suhailkandanur.fresco.util;
 
+import org.apache.tika.Tika;
+
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -34,6 +37,14 @@ public class FileUtils {
             if (Files.exists(metaDataFileTmp)) Files.delete(metaDataFileTmp);
         }
         return metaDataFile;
+    }
+
+    public static String fileMimeType(File f) throws IOException {
+        return new Tika().detect(f);
+    }
+
+    public static String fileMimeType(Path p) throws IOException {
+        return new Tika().detect(p);
     }
 
 

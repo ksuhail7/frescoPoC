@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 /**
  * Created by suhail on 2016-12-09.
@@ -21,5 +22,9 @@ public class ChecksumUtils {
 
     public static String sha1(InputStream inputStream) throws IOException {
         return DigestUtils.sha1Hex(inputStream);
+    }
+
+    public static String sha1(Path path) throws IOException {
+        return sha1(path.toFile());
     }
 }

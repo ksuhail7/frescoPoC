@@ -32,5 +32,6 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 	compile('org.springframework.boot:spring-boot-starter-data-rest')
 	runtime('org.springframework.boot:spring-boot-devtools')
+	compile group: 'org.apache.tika', name: 'tika-core', version: '1.14'
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
