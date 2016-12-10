@@ -4,6 +4,7 @@ import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.service.StorageService;
+import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.Exchange;
@@ -27,7 +28,12 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
     @Override
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-documentversion-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "documentversion"))
     public void processMessage(String message) throws Exception {
+        if(message == null) {
+            logger.error("request is null");
+            return;
+        }
         logger.info("received request to create document version");
+        DocumentVersion documentVersion = JsonUtils.convertStrToJson(message, DocumentVersion.class);
     }
 
 
