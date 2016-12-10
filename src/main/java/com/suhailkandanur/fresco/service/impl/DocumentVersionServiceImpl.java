@@ -16,10 +16,11 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,13 +66,46 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
         documentVersion.setMimetype(mimeType);
         documentVersion.setVersion(version);
         documentVersion.setFilesize(Files.size(filePath));
-        createDocumentVersiononStorage(documentVersion);
+        createDocumentVersionOnStorage(documentVersion, filePath);
         saveDocumentVersionToDatabase(documentVersion);
     }
 
-    private void createDocumentVersiononStorage(DocumentVersion documentVersion) {
-        String rootPath = storageService.getRootPath(documentVersion);
-        //TODO: pending implementation
+    private void createDocumentVersionOnStorage(DocumentVersion documentVersion, Path sourcePath) throws IOException {
+        String rootPath = storageService.getObjectsRootPath(documentVersion.getStoreId());
+        logger.info("root path for writing document version");
+        String sha1 = documentVersion.getSha1();
+        Path objectPath = Paths.get(rootPath)
+                .resolve(sha1.substring(0, 2))
+                .resolve(sha1.substring(2, 6))
+                .resolve(sha1.substring(6));
+        if (Files.exists(objectPath)) {
+            logger.info("file object already exists at '{}'" + objectPath);
+            return;
+        }
+
+        try {
+            Files.copy(sourcePath, objectPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            logger.info("unable to copy file to objects folder, error:  {} ", e.getMessage());
+            e.printStackTrace();
+        }
+
+        //create the version
+        String documentRootPath = storageService.getDocumentsRootPath(documentVersion.getStoreId());
+        String docIdSha1 = ChecksumUtils.sha1(documentVersion.getDocumentId());
+        Path versionPath = Paths.get(documentRootPath)
+                .resolve(docIdSha1.substring(0, 2))
+                .resolve(docIdSha1.substring(2, 6))
+                .resolve(docIdSha1.substring(6))
+                .resolve(Long.toString(documentVersion.getVersion()));
+
+        if (Files.exists(versionPath)) {
+            //this cannot happen
+            logger.error("version already exists, this case should not happen");
+            return;
+        }
+
+        FileUtils.writeMetaInfFile(versionPath, documentVersion);
     }
 
 

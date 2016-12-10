@@ -9,6 +9,8 @@ import com.suhailkandanur.fresco.entity.DocumentVersion;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
 import com.suhailkandanur.fresco.service.StorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,8 @@ import java.nio.file.Paths;
  */
 @Service
 public class StorageServiceImpl implements StorageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(StorageServiceImpl.class);
     @Autowired
     private FrescoRepoRepository frescoRepoRepository;
 
@@ -59,21 +63,27 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public String getRootPath(DocumentVersion documentVersion) {
-        if(documentVersion == null)
-            return null;
-        Document document = documentRepository.findDocumentByStoreIdAndDocumentId(documentVersion.getStoreId(),
-                documentVersion.getDocumentId());
-        if(document == null)
-            return null;
-        String docRoot = getRootPath(document);
-        return docRoot; //TODO: construct document version root folder
-
+    public String getObjectsRootPath(String storeId) {
+        String rootPath = getRootPathForStoreId(storeId);
+        return rootPath == null ? null : Paths.get(rootPath, "objects").toString();
     }
 
     @Override
-    public String getObjectsRootPath(Store store) {
-        String rootPath = getRootPath(store);
-        return rootPath == null ? null : Paths.get(rootPath, "objects").toString();
+    public String getDocumentsRootPath(String storeId) {
+        String rootPath = getRootPathForStoreId(storeId);
+        return rootPath == null ? null : Paths.get(rootPath, "documents").toString();
+    }
+
+    private String getRootPathForStoreId(String storeId) {
+        if (storeId == null || "".equals(storeId)) {
+            logger.info("store id is null");
+            return null;
+        }
+        Store store = storeRepository.findOne(storeId);
+        if(store == null) {
+            logger.error("store not found for id '{}'", storeId);
+            return null;
+        }
+        return getRootPath(store);
     }
 }
