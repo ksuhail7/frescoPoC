@@ -11,4 +11,8 @@ public class FrescoConfiguration {
     public String getFileSystem() {
         return "/Users/suhail/tmp/fresco/fs1"; //TODO: hardcoded filesystem path, externalize using config server & client
     }
+
+    public String getTempStagingDirection() {
+        return "/Users/suhail/tmp/fresco/fs1/.staging";
+    }
 }

@@ -11,4 +11,5 @@ public interface StorageService {
     String getRootPath(Repository repository);
     String getRootPath(Store store);
     String getRootPath(Document document);
+    String getObjectsRootPath(Store store);
 }

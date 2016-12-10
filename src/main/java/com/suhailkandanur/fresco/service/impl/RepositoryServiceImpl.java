@@ -4,6 +4,7 @@ import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
+import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
@@ -20,10 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Created by suhail on 2016-12-02.
@@ -36,6 +34,9 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
 
     @Autowired
     private FrescoRepoRepository repositoryDAO;
+
+    @Autowired
+    private StorageService storageService;
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
@@ -57,7 +58,7 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
 
             repository.setRootPath(Paths.get(configuration.getFileSystem(), "fresco", repository.getName()).toString());
 
-            createRepository(repository);
+            initializeRepositoryStorage(repository);
             writeEntryToDatabase(repository);
         } catch(IOException ioe) {
             logger.error("error processing request, message: {}", ioe.getMessage());
@@ -65,25 +66,28 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
         }
     }
 
-    boolean createRepository(Repository repository) throws Exception {
+    boolean initializeRepositoryStorage(Repository repository) throws Exception {
         Objects.requireNonNull(repository);
 
 
         //TODO: lock the repository before continuing
         //Boolean status = repository.<Boolean>withLockOn(() -> {
             try {
-                Path repositoryRoot = Paths.get(repository.getRootPath());
+                String repositoryRootPathStr = storageService.getRootPath(repository);
+                Path repositoryRoot = Paths.get(repositoryRootPathStr);
                 if (repositoryRoot != null && Files.notExists(repositoryRoot.getParent().getParent())) {
                     logger.error("root file system path '{}' does not exist", repositoryRoot.getParent().getParent());
                     return false;
                 }
 
-                if (Files.exists(repositoryRoot)) {
+                Path repositoryPath = repositoryRoot.resolve(repository.getName());
+
+                if (Files.exists(repositoryPath)) {
                     logger.error("repository root directory '{}' already exists, cannot create repository on filesystem",
-                            repositoryRoot);
+                            repositoryPath);
                     return false;
                 }
-                Files.createDirectories(repositoryRoot);
+                Files.createDirectories(repositoryPath);
 
                 Path storesRootPath = repositoryRoot.resolve("stores");
                 Files.createDirectories(storesRootPath);

@@ -5,6 +5,7 @@ import com.suhailkandanur.fresco.dataaccess.StoreRepository;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
+import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class StoreServiceImpl implements RabbitQueueListener {
     @Autowired
     private FrescoRepoRepository repoRepository;
 
+    @Autowired
+    private StorageService storageService;
+
     @Override
     @Transactional
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-store-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "store"))
@@ -52,22 +56,22 @@ public class StoreServiceImpl implements RabbitQueueListener {
                 logger.error("unable to find repository with id '{}'", store.getRepositoryId());
                 return;
             }
-            createStoreOnFileSystem(store, repository);
+            initializeStoreStorage(store);
             writeEntryToDatabase(store);
         } catch (IOException ioe) {
             return;
         }
     }
 
-    public void createStoreOnFileSystem(Store store, Repository repository) throws IOException {
-        String fileSystem = repository.getRootPath();
-        Path repositoryRoot = Paths.get(fileSystem);
-        if (Files.notExists(repositoryRoot)) {
-            logger.error("repository path '{}' does not exists, cannot create store", repositoryRoot);
+    public void initializeStoreStorage(Store store) throws IOException {
+        String rootPathStr = storageService.getRootPath(store);
+        Path storeRootPath = Paths.get(rootPathStr);
+        if (Files.notExists(storeRootPath)) {
+            logger.error("repository path '{}' does not exists, cannot create store", storeRootPath);
             throw new IOException("repository path does not exists");
         }
 
-        Path storePath = repositoryRoot.resolve("stores").resolve(store.getName());
+        Path storePath = storeRootPath.resolve(store.getName());
         if (Files.exists(storePath)) {
             logger.error("store already exists at path '{}', cannot create a new one", storePath);
             throw new IOException("store already exists");
@@ -80,6 +84,11 @@ public class StoreServiceImpl implements RabbitQueueListener {
             logger.error("store meta.inf file not created for unknown reasons");
             throw new IOException("unable to create meta.inf file for store");
         }
+
+        Path documentsRootPath = storePath.resolve("documents");
+        Files.createDirectories(documentsRootPath);
+        Path objectsRootPath = storePath.resolve("objects");
+        Files.createDirectories(objectsRootPath);
     }
 
     public void writeEntryToDatabase(Store store) {

@@ -11,6 +11,8 @@ import com.suhailkandanur.fresco.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Paths;
+
 /**
  * Created by suhail on 2016-12-09.
  */
@@ -44,7 +46,7 @@ public class StorageServiceImpl implements StorageService {
         }
         String repositoryId = store.getRepositoryId();
         Repository repo = frescoRepoRepository.findOne(repositoryId);
-        return repo == null ? null : repo.getRootPath();
+        return repo == null ? null : Paths.get(repo.getRootPath(), "stores").toString();
     }
 
     @Override
@@ -52,6 +54,12 @@ public class StorageServiceImpl implements StorageService {
         if(document == null)
             return null;
         Store store = storeRepository.findOne(document.getStoreId());
-        return getRootPath(store);
+        return Paths.get(getRootPath(store), document.getStoreId(), "documents").toString();
+    }
+
+    @Override
+    public String getObjectsRootPath(Store store) {
+        String rootPath = getRootPath(store);
+        return rootPath == null ? null : Paths.get(rootPath, "objects").toString();
     }
 }
