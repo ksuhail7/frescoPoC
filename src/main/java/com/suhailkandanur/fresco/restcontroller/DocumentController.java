@@ -2,9 +2,13 @@ package com.suhailkandanur.fresco.restcontroller;
 
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
+import com.suhailkandanur.fresco.service.DocumentService;
+import com.suhailkandanur.fresco.util.ChecksumUtils;
+import com.suhailkandanur.fresco.util.JsonUtils;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -26,6 +30,9 @@ public class DocumentController {
     private static final Logger logger = LoggerFactory.getLogger(DocumentController.class);
 
     @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
     private DocumentRepository documentRepository;
 
     @GetMapping("/document/{storeId}/{docId}")
@@ -34,17 +41,22 @@ public class DocumentController {
     }
 
     @PostMapping("/document")
-    public Document createDocument(@RequestBody Map<String, String> request) {
+    public Document createDocument(@RequestBody Map<String, String> request) throws IOException {
         logger.info("create document entry point");
-        request.get("docId");
-        request.get("storeId");
-
-        return null;
+        String docId = request.get("docId");
+        String storeId = request.get("storeId");
+        Document document = new Document();
+        document.setDocumentId(docId);
+        document.setStoreId(storeId);
+        document.setDocIdSha1(ChecksumUtils.sha1(docId));
+        String requestJson = JsonUtils.convertObjectToJsonStr(document);
+        rabbitTemplate.convertAndSend("fresco", "document", requestJson);
+        return document;
     }
 
     @GetMapping("/document/{storeId}")
     public List<Document> getDocumentsInStore(@PathVariable String storeId) {
-        throw new NotImplementedException();
+        return documentRepository.findDocumentByStoreId(storeId);
     }
 
     @GetMapping("/document/{storeId}/{docId}/retrieve")
