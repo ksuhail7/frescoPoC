@@ -72,14 +72,13 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
 
     private void createDocumentVersionOnStorage(DocumentVersion documentVersion, Path sourcePath) throws IOException {
         String rootPath = storageService.getObjectsRootPath(documentVersion.getStoreId());
-        logger.info("root path for writing document version");
         String sha1 = documentVersion.getSha1();
         Path objectPath = Paths.get(rootPath)
                 .resolve(sha1.substring(0, 2))
                 .resolve(sha1.substring(2, 6))
                 .resolve(sha1.substring(6));
         if (Files.exists(objectPath)) {
-            logger.info("file object already exists at '{}'", objectPath);
+            logger.info("file object already exists at '{}', skipping file creation", objectPath);
         } else {
 
             try {
@@ -89,9 +88,11 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
                     Files.createDirectories(parentDir);
                 }
                 Files.copy(sourcePath, objectPath, StandardCopyOption.REPLACE_EXISTING);
+                logger.info("the file object is saved at '{}'", objectPath);
             } catch (IOException e) {
                 logger.info("unable to copy file to objects folder, error:  {} ", e.getMessage());
                 e.printStackTrace();
+                return;
             }
         }
 
@@ -103,15 +104,17 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
                 .resolve(docIdSha1.substring(2, 6))
                 .resolve(docIdSha1.substring(6))
                 .resolve(Long.toString(documentVersion.getVersion()));
+        logger.debug("creating version file '{}'", versionPath);
 
         if (Files.exists(versionPath)) {
             //this cannot happen
-            logger.error("version already exists, this case should not happen");
+            logger.error("FATAL: version already exists, this case should not happen");
             return;
         }
         Path parentPath = versionPath.getParent();
         if(Files.notExists(parentPath)) Files.createDirectories(parentPath);
         FileUtils.writeToFile(versionPath, JsonUtils.convertObjectToJsonStr(documentVersion));
+        logger.info("created the version file '{}'", versionPath);
     }
 
 
