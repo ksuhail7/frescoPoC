@@ -75,7 +75,12 @@ public class DocumentVersionController {
 
     @PostMapping("/documentversion/{storeId}/{docId}")
     public DocumentVersion createDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @RequestBody Map<String, String> params) {
-        throw new NotImplementedException();
+        logger.info("document version creation (via path) handler entry point");
+        if (params == null) {
+            logger.error("no params specified, cannot create document version");
+            return null;
+        }
+        return new DocumentVersion();
     }
 
 }
