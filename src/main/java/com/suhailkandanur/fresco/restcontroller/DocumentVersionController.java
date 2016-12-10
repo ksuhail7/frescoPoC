@@ -17,8 +17,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Created by suhail on 2016-12-08.
@@ -51,22 +53,29 @@ public class DocumentVersionController {
     }
 
     @PostMapping("/documentversion/{storeId}/{docId}/upload")
-    public DocumentVersion createDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
+    public Map<String, String> createDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
                                                  RedirectAttributes redirectAttributes) {
         logger.info("document version creation (post request with file upload) handler entry point");
         try {
             File tempFile = File.createTempFile("fresco", ".bin", new File(configuration.getTempStagingDirection()));
             logger.info("storing the uploaded file at temp staging location '{}'", tempFile.getAbsolutePath());
             Files.copy(file.getInputStream(), Paths.get(tempFile.getAbsolutePath()));
-            DocumentVersion documentVersion = new DocumentVersion();
-            documentVersion.setDocumentId(docId);
-            documentVersion.setStoreId(storeId);
-            documentVersion.setFilename(file.getName());
+            String token = UUID.randomUUID().toString();
+            Map<String, String> requestParamsMap = new HashMap<>();
+            requestParamsMap.put("storeId", storeId);
+            requestParamsMap.put("docId", docId);
+            requestParamsMap.put("fileLocation", tempFile.getAbsolutePath());
+            requestParamsMap.put("fileName", file.getName());
+            requestParamsMap.put("token", token);
             logger.info("sending message to 'fresco' exchange for async processing");
             rabbitTemplate.convertAndSend("fresco",
                     "documentversion",
-                    JsonUtils.convertObjectToJsonStr(documentVersion));
-            return documentVersion;
+                    JsonUtils.convertObjectToJsonStr(requestParamsMap));
+            Map<String, String> response = new HashMap<>();
+            response.put("storeId", storeId);
+            response.put("docId", docId);
+            response.put("token", token);
+            return response;
         } catch (IOException ioe) {
             logger.error("unable to handle uploaded file content, error: {}", ioe.getMessage());
         }
