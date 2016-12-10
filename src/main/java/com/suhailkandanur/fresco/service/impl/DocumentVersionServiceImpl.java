@@ -79,15 +79,20 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
                 .resolve(sha1.substring(2, 6))
                 .resolve(sha1.substring(6));
         if (Files.exists(objectPath)) {
-            logger.info("file object already exists at '{}'" + objectPath);
-            return;
-        }
+            logger.info("file object already exists at '{}'", objectPath);
+        } else {
 
-        try {
-            Files.copy(sourcePath, objectPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            logger.info("unable to copy file to objects folder, error:  {} ", e.getMessage());
-            e.printStackTrace();
+            try {
+                //create parent directories
+                Path parentDir = objectPath.getParent();
+                if (Files.notExists(parentDir)) {
+                    Files.createDirectories(parentDir);
+                }
+                Files.copy(sourcePath, objectPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                logger.info("unable to copy file to objects folder, error:  {} ", e.getMessage());
+                e.printStackTrace();
+            }
         }
 
         //create the version
@@ -104,8 +109,9 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
             logger.error("version already exists, this case should not happen");
             return;
         }
-
-        FileUtils.writeMetaInfFile(versionPath, documentVersion);
+        Path parentPath = versionPath.getParent();
+        if(Files.notExists(parentPath)) Files.createDirectories(parentPath);
+        FileUtils.writeToFile(versionPath, JsonUtils.convertObjectToJsonStr(documentVersion));
     }
 
 
