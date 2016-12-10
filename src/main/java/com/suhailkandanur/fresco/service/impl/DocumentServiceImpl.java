@@ -3,6 +3,7 @@ package com.suhailkandanur.fresco.service.impl;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
+import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,9 @@ public class DocumentServiceImpl implements RabbitQueueListener {
     private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
     @Autowired
+    private StorageService storageService;
+
+    @Autowired
     private DocumentRepository documentRepository;
 
     @Override
@@ -33,6 +37,8 @@ public class DocumentServiceImpl implements RabbitQueueListener {
     }
 
     private void createDocumentStorage(Document doc) {
+        String rootPath = storageService.getRootPath(doc);
+
 
     }
 
