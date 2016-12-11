@@ -1,5 +1,23 @@
-<div>
-<h3>
-List of Stores
-</h3>
+<div class="container">
+  <div>
+    <h5>List of Stores</h5>
+    <table class="table">
+      <thead>
+      <tr>
+        <th>id</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>repository id</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let store of stores">
+        <td>{{store.id}}</td>
+        <td>{{store.name}}</td>
+        <td>{{store.description}}</td>
+        <td>{{store.repositoryId}}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
