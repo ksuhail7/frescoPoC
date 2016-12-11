@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by suhail on 2016-12-09.
@@ -126,17 +124,22 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener, Document
 
     @Override
     public DocumentVersion getLatestDocumentVersion(String storeId, String docId) {
-        return null;
+        List<DocumentVersion> documentVersions = documentVersionRepository.findDocumentVersionByStoreIdAndDocumentId(
+                storeId,
+                docId);
+        Optional<DocumentVersion> latest = documentVersions.stream()
+                .max(Comparator.comparing(DocumentVersion::getVersion));
+        return latest.isPresent() ? latest.get() : null;
     }
 
     @Override
     public DocumentVersion getDocumentVersion(String storeId, String docId, long version) {
-        return null;
-        //return documentVersionRepository.findOne();
+        return documentVersionRepository.findDocumentVersionByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
     }
 
     @Override
     public List<DocumentVersion> getDocumentVersions(String storeId, String docId) {
-        return null;
+        return documentVersionRepository.findDocumentVersionByStoreIdAndDocumentId(storeId, docId);
     }
+
 }

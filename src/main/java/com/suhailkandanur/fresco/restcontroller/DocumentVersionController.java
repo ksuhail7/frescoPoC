@@ -48,11 +48,13 @@ public class DocumentVersionController {
 
     @GetMapping("/documentversion/{storeId}/{docId}/{version}")
     public DocumentVersion getDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version) {
+        logger.info("getting document versions for store id {}, doc id {} and version {}", storeId, docId, version);
         return documentVersionService.getDocumentVersion(storeId, docId, version);
     }
 
     @GetMapping("/documentversion/{storeId}/{docId}")
-    public List<DocumentVersion> getDocumentVersions(String storeId, String docId) {
+    public List<DocumentVersion> getDocumentVersions(@PathVariable String storeId, @PathVariable  String docId) {
+        logger.info("getting document versions for store id {} and doc id {}", storeId, docId);
         return documentVersionService.getDocumentVersions(storeId, docId);
     }
 
