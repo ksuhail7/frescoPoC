@@ -2,6 +2,8 @@ package com.suhailkandanur.fresco.restcontroller;
 
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
+import com.suhailkandanur.fresco.service.DocumentVersionService;
+import com.suhailkandanur.fresco.service.impl.DocumentVersionServiceImpl;
 import com.suhailkandanur.fresco.util.ChecksumUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.slf4j.Logger;
@@ -36,19 +38,22 @@ public class DocumentVersionController {
     @Autowired
     private FrescoConfiguration configuration;
 
+    @Autowired
+    private DocumentVersionService documentVersionService;
+
     @GetMapping("/documentversion/{storeId}/{docId}/latest")
     public DocumentVersion getLatestDocumentVersion(@PathVariable String storeId, @PathVariable String docId) {
-        throw new NotImplementedException();
+        return documentVersionService.getLatestDocumentVersion(storeId, docId);
     }
 
     @GetMapping("/documentversion/{storeId}/{docId}/{version}")
     public DocumentVersion getDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version) {
-        throw new NotImplementedException();
+        return documentVersionService.getDocumentVersion(storeId, docId, version);
     }
 
     @GetMapping("/documentversion/{storeId}/{docId}")
     public List<DocumentVersion> getDocumentVersions(String storeId, String docId) {
-        throw new NotImplementedException();
+        return documentVersionService.getDocumentVersions(storeId, docId);
     }
 
     @PostMapping(value = "/documentversion/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")

@@ -2,6 +2,7 @@ package com.suhailkandanur.fresco.service.impl;
 
 import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
+import com.suhailkandanur.fresco.service.DocumentVersionService;
 import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.ChecksumUtils;
@@ -22,13 +23,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by suhail on 2016-12-09.
  */
 @Service
-public class DocumentVersionServiceImpl implements RabbitQueueListener {
+public class DocumentVersionServiceImpl implements RabbitQueueListener, DocumentVersionService {
     private static final Logger logger = LoggerFactory.getLogger(DocumentVersionServiceImpl.class);
 
     @Autowired
@@ -120,5 +122,21 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener {
 
     private void saveDocumentVersionToDatabase(DocumentVersion documentVersion) {
         documentVersionRepository.save(documentVersion);
+    }
+
+    @Override
+    public DocumentVersion getLatestDocumentVersion(String storeId, String docId) {
+        return null;
+    }
+
+    @Override
+    public DocumentVersion getDocumentVersion(String storeId, String docId, long version) {
+        return null;
+        //return documentVersionRepository.findOne();
+    }
+
+    @Override
+    public List<DocumentVersion> getDocumentVersions(String storeId, String docId) {
+        return null;
     }
 }
