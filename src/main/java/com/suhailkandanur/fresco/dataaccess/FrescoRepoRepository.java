@@ -9,4 +9,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 @org.springframework.stereotype.Repository
 public interface FrescoRepoRepository extends MongoRepository<Repository, String> {
     Repository findFrescoRepoByName(String name);
+
+    Repository findFrescoRepoByToken(String token);
 }

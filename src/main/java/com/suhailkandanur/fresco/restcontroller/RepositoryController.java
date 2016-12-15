@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -57,8 +59,18 @@ public class RepositoryController {
     }
 
     @GetMapping(value="/repository/{id}")
-    public Repository getRepository(@PathVariable String id) {
+    public Repository getRepositoryDetailsById(@PathVariable String id) {
         return repoRepository.findOne(id);
+    }
+
+    @GetMapping(value = "/repository/token/{token}")
+    public Repository getRepositoryDetailsByToken(@PathVariable String token) {
+        return repoRepository.findFrescoRepoByToken(token);
+    }
+
+    @PutMapping(value = "/repository", consumes = "application/json")
+    public Repository updateRepository(@RequestBody Map<String, String> params, HttpServletResponse response) throws IOException {
+        throw new UnsupportedOperationException("repository update currently not supported");
     }
 
 }

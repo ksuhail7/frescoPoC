@@ -29,14 +29,24 @@ public class StoreController {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @GetMapping("/stores")
+    @GetMapping("/allstores")
     public List<Store> getAllStoreList() {
         return storeRepository.findAll();
+    }
+
+    @GetMapping("/repostores/{repositoryId}")
+    public List<Store> getStoreInRepository(@PathVariable String repositoryId) {
+        return storeRepository.findStoreByRepositoryId(repositoryId);
     }
 
     @GetMapping("/store/{id}")
     public Store getStoreById(@PathVariable String id) {
         return storeRepository.findOne(id);
+    }
+
+    @GetMapping("/store/token/{token}")
+    public Store getStoreByToken(@PathVariable String token) {
+        return storeRepository.findStoreByToken(token);
     }
 
     @PostMapping("/store")
@@ -45,7 +55,7 @@ public class StoreController {
         String description = params.get("description");
         String repositoryId = params.getOrDefault("repositoryId", null);
         Objects.requireNonNull(name);
-        if(repositoryId == null) {
+        if (repositoryId == null) {
             logger.error("repository must be specified");
             return null;
         }
@@ -54,9 +64,14 @@ public class StoreController {
         try {
             rabbitTemplate.convertAndSend("fresco", "store", JsonUtils.convertObjectToJsonStr(store));
             return store;
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             logger.error("unable to send request for store creation, error: {}", ioe.getMessage());
         }
         return null;
+    }
+
+    @PutMapping("/store")
+    public Store updateStore(@RequestBody Map<String, String> params) {
+        throw new UnsupportedOperationException("update store operation not supported currently");
     }
 }
