@@ -4,9 +4,11 @@ import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
 import com.suhailkandanur.fresco.util.JsonUtils;
+import org.apache.http.HttpStatus;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -87,11 +89,11 @@ public class DocumentController {
 
     @PostMapping(value = "/document/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")
     public Map<String, String> createDocument(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
-                                              RedirectAttributes redirectAttributes) {
-
+                                              RedirectAttributes redirectAttributes, HttpServletResponse response) throws IOException {
         logger.info("document version creation (post request with file upload) handler entry point");
-
+        //input validation
         try {
+<<<<<<< HEAD
             String stagingLocation = configuration.getTempStagingDirection();
             Path stagingPath = Paths.get(stagingLocation);
             if (Files.notExists(stagingPath)) {
@@ -119,25 +121,81 @@ public class DocumentController {
             response.put("token", token);
             response.put("version", version);
             return response;
+=======
+            return handleFileUpload(storeId, docId, file, "document-create");
+>>>>>>> 5b68ec8898937161cecb09049e4ec8c064e1e3c9
         } catch (IOException ioe) {
             logger.error("unable to handle uploaded file content, error: {}", ioe.getMessage());
+            response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unable to document creation request");
             ioe.printStackTrace();
+        } catch (IllegalArgumentException iae) {
+            String msg = "required parameters storeid, docid and file not specified, cannot create document";
+            logger.error(msg);
+            response.sendError(HttpStatus.SC_BAD_REQUEST, msg);
         }
         return null;
     }
 
     /**
-     *
-     * @param storeId the store id
-     * @param docId the document id
-     * @param file the uploaded file
+     * @param storeId            the store id
+     * @param docId              the document id
+     * @param file               the uploaded file
      * @param redirectAttributes attributes
      * @return the response with token
      */
     @PutMapping(value = "/document/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")
     public Map<String, String> updateDocument(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
-                                              RedirectAttributes redirectAttributes) {
-        throw new NotImplementedException();
+                                              RedirectAttributes redirectAttributes, HttpServletResponse response) throws IOException {
+        logger.info("document version update (post request with file upload) handler entry point");
+        //input validation
+        try {
+            return handleFileUpload(storeId, docId, file, "document-update");
+        } catch (IOException ioe) {
+            logger.error("unable to handle uploaded file content, error: {}", ioe.getMessage());
+            response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unable to handle document update request");
+            ioe.printStackTrace();
+        } catch (IllegalArgumentException iae) {
+            String msg = "required parameters storeid, docid and file not specified, cannot update document";
+            logger.error(msg);
+            response.sendError(HttpStatus.SC_BAD_REQUEST, msg);
+        }
+        return null;
+    }
+
+    private Map<String, String> handleFileUpload(String storeId, String docId, MultipartFile file, String routingKey) throws IOException, IllegalArgumentException {
+        if (storeId == null || docId == null || file == null) {
+            String msg = "required parameters storeid, docid and file not specified, cannot create document";
+            logger.error(msg);
+            throw new IllegalArgumentException(msg);
+        }
+        String stagingLocation = configuration.getTempStagingDirection();
+        Path stagingPath = Paths.get(stagingLocation);
+        if (Files.notExists(stagingPath)) {
+            logger.info("staging directory '{}' does not exist, attempting to create one", stagingLocation);
+            Files.createDirectories(stagingPath);
+        }
+        Path outputFile = Files.createTempFile(stagingPath, "fresco-", ".bin");
+        Files.copy(file.getInputStream(), outputFile, StandardCopyOption.REPLACE_EXISTING);
+        String token = UUID.randomUUID().toString();
+        Map<String, String> requestParamsMap = new HashMap<>();
+        requestParamsMap.put("storeId", storeId);
+        requestParamsMap.put("docId", docId);
+        requestParamsMap.put("fileLocation", outputFile.toString());
+        requestParamsMap.put("fileName", file.getOriginalFilename());
+        requestParamsMap.put("token", token);
+        String version = Long.toString(System.currentTimeMillis());
+        requestParamsMap.put("version", version);
+        logger.info("sending message to 'fresco' exchange for async processing");
+        rabbitTemplate.convertAndSend("fresco",
+                routingKey,
+                JsonUtils.convertObjectToJsonStr(requestParamsMap));
+        Map<String, String> responseObj = new HashMap<>();
+        responseObj.put("storeId", storeId);
+        responseObj.put("docId", docId);
+        responseObj.put("token", token);
+        responseObj.put("version", version);
+        responseObj.put("filename", file.getOriginalFilename());
+        return responseObj;
     }
 
     @GetMapping("/document/{storeId}")
