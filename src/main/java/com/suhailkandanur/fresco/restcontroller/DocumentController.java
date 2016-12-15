@@ -126,6 +126,14 @@ public class DocumentController {
         return null;
     }
 
+    /**
+     *
+     * @param storeId the store id
+     * @param docId the document id
+     * @param file the uploaded file
+     * @param redirectAttributes attributes
+     * @return the response with token
+     */
     @PutMapping(value = "/document/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")
     public Map<String, String> updateDocument(@PathVariable String storeId, @PathVariable String docId, @RequestParam("file") MultipartFile file,
                                               RedirectAttributes redirectAttributes) {
