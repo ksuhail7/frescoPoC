@@ -14,6 +14,25 @@ public class Document {
 
     private String storeId;
 
+    private String token;
+
+    public Document() {}
+
+    public Document(final String storeId, final String docId, final String docIdSha1, String token) {
+        this.storeId = storeId;
+        this.documentId = docId;
+        this.docIdSha1 = docIdSha1;
+        this.token = token;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
     public String getStoreId() {
         return storeId;
     }
@@ -44,5 +63,34 @@ public class Document {
 
     public void setDocIdSha1(String docIdSha1) {
         this.docIdSha1 = docIdSha1;
+    }
+
+    private static final class DocumentBuilder {
+        private String documentId, docIdSha1, storeId, token;
+        public DocumentBuilder() {}
+        public Document build() {
+            return new Document(storeId, documentId, docIdSha1, token);
+        }
+
+        public DocumentBuilder storeId(String storeId) {
+            this.storeId = storeId;
+            return this;
+        }
+
+        public DocumentBuilder documentId(String docId) {
+            this.documentId = docId;
+            return this;
+        }
+
+        public DocumentBuilder docIdSha1(String docIdSha1) {
+            this.docIdSha1 = docIdSha1;
+            return this;
+        }
+
+        public DocumentBuilder token(String token) {
+            this.token = token;
+            return this;
+        }
+
     }
 }

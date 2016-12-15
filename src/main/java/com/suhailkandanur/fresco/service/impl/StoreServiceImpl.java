@@ -4,7 +4,6 @@ import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.dataaccess.StoreRepository;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
-import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
@@ -27,7 +26,7 @@ import java.nio.file.Paths;
  * Created by suhail on 2016-12-04.
  */
 @Service
-public class StoreServiceImpl implements RabbitQueueListener {
+public class StoreServiceImpl {
 
     private static final Logger logger = LoggerFactory.getLogger(StoreServiceImpl.class);
 
@@ -40,7 +39,6 @@ public class StoreServiceImpl implements RabbitQueueListener {
     @Autowired
     private StorageService storageService;
 
-    @Override
     @Transactional
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-store-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "store"))
     public void processMessage(String data) {

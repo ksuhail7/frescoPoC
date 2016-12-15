@@ -3,7 +3,6 @@ package com.suhailkandanur.fresco.service.impl;
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.entity.Repository;
-import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.FileUtils;
 import com.suhailkandanur.fresco.util.JsonUtils;
@@ -27,7 +26,7 @@ import java.util.Objects;
  * Created by suhail on 2016-12-02.
  */
 @Service
-public class RepositoryServiceImpl implements RabbitQueueListener {
+public class RepositoryServiceImpl {
 
     @Autowired
     private FrescoConfiguration configuration;
@@ -40,7 +39,6 @@ public class RepositoryServiceImpl implements RabbitQueueListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
-    @Override
     @Transactional
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-repository-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "repository"))
     public void processMessage(String message) throws Exception {
