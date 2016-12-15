@@ -46,7 +46,8 @@ public class DocumentController {
 
     @GetMapping("/document/{storeId}/{docId}")
     public List<Document> getDocumentDetails(@PathVariable String storeId, @PathVariable String docId) {
-        return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
+        throw new NotImplementedException();
+       // return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
     }
 
     @GetMapping("/document/{storeId}/{docId}/{version}")
@@ -110,7 +111,7 @@ public class DocumentController {
             requestParamsMap.put("version", version);
             logger.info("sending message to 'fresco' exchange for async processing");
             rabbitTemplate.convertAndSend("fresco",
-                    "documentversion",
+                    "document-create",
                     JsonUtils.convertObjectToJsonStr(requestParamsMap));
             Map<String, String> response = new HashMap<>();
             response.put("storeId", storeId);

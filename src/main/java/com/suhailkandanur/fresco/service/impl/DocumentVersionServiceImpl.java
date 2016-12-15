@@ -3,7 +3,6 @@ package com.suhailkandanur.fresco.service.impl;
 import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
 import com.suhailkandanur.fresco.service.DocumentVersionService;
-import com.suhailkandanur.fresco.service.RabbitQueueListener;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.ChecksumUtils;
 import com.suhailkandanur.fresco.util.FileUtils;
@@ -28,7 +27,7 @@ import java.util.*;
  * Created by suhail on 2016-12-09.
  */
 @Service
-public class DocumentVersionServiceImpl implements RabbitQueueListener, DocumentVersionService {
+public class DocumentVersionServiceImpl implements DocumentVersionService {
     private static final Logger logger = LoggerFactory.getLogger(DocumentVersionServiceImpl.class);
 
     @Autowired
@@ -37,7 +36,6 @@ public class DocumentVersionServiceImpl implements RabbitQueueListener, Document
     @Autowired
     private StorageService storageService;
 
-    @Override
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-documentversion-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "documentversion"))
     public void processMessage(String message) throws Exception {
         if(message == null) {
