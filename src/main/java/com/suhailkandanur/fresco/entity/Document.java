@@ -16,7 +16,8 @@ public class Document {
 
     private String token;
 
-    public Document() {}
+    public Document() {
+    }
 
     public Document(final String storeId, final String docId, final String docIdSha1, String token) {
         this.storeId = storeId;
@@ -67,7 +68,10 @@ public class Document {
 
     private static final class DocumentBuilder {
         private String documentId, docIdSha1, storeId, token;
-        public DocumentBuilder() {}
+
+        public DocumentBuilder() {
+        }
+
         public Document build() {
             return new Document(storeId, documentId, docIdSha1, token);
         }

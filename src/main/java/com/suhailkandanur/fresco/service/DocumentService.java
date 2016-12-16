@@ -2,9 +2,6 @@ package com.suhailkandanur.fresco.service;
 
 import com.suhailkandanur.fresco.entity.Document;
 
-import java.io.File;
-import java.util.List;
-
 /**
  * Created by suhail on 2016-12-08.
  */

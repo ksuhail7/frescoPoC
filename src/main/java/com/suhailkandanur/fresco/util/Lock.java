@@ -5,8 +5,11 @@ package com.suhailkandanur.fresco.util;
  */
 public interface Lock {
     boolean isLocked();
+
     void lock() throws Exception;
+
     boolean tryLock();
+
     void release();
 }
 

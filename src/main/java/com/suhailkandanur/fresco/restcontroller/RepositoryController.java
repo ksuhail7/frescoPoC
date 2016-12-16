@@ -37,7 +37,7 @@ public class RepositoryController {
         String name = params.get("name");
         String description = params.get("description");
         long quota = Long.valueOf(params.getOrDefault("quota", "100000000"));
-        if(name == null || "".equals(name)) {
+        if (name == null || "".equals(name)) {
             logger.error("repository name should not be null/empty string");
             return null;
         }
@@ -53,12 +53,12 @@ public class RepositoryController {
     }
 
 
-    @GetMapping(value="/repository")
+    @GetMapping(value = "/repository")
     public List<Repository> getRepositoriesList() {
         return repoRepository.findAll();
     }
 
-    @GetMapping(value="/repository/{id}")
+    @GetMapping(value = "/repository/{id}")
     public Repository getRepositoryDetailsById(@PathVariable String id) {
         return repoRepository.findOne(id);
     }

@@ -25,7 +25,9 @@ public class Store {
         this(name, description, repositoryId, null);
     }
 
-    public Store() {this(null, null, null);}
+    public Store() {
+        this(null, null, null);
+    }
 
     public String getName() {
         return name;

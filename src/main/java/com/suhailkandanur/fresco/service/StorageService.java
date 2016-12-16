@@ -1,7 +1,6 @@
 package com.suhailkandanur.fresco.service;
 
 import com.suhailkandanur.fresco.entity.Document;
-import com.suhailkandanur.fresco.entity.DocumentVersion;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
 
@@ -10,8 +9,12 @@ import com.suhailkandanur.fresco.entity.Store;
  */
 public interface StorageService {
     String getRootPath(Repository repository);
+
     String getRootPath(Store store);
+
     String getRootPath(Document document);
+
     String getObjectsRootPath(String storeId);
+
     String getDocumentsRootPath(String storeId);
 }

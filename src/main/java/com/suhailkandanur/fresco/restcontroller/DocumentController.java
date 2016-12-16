@@ -9,7 +9,6 @@ import org.apache.http.HttpStatus;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +52,7 @@ public class DocumentController {
     @GetMapping("/document/{storeId}/{docId}")
     public List<Document> getDocumentDetails(@PathVariable String storeId, @PathVariable String docId) {
         throw new NotImplementedException();
-       // return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
+        // return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
     }
 
     @GetMapping("/document/{storeId}/{docId}/{version}")

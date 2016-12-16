@@ -9,9 +9,10 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @SpringBootApplication
 @EnableMongoRepositories
 public class FrescoApplication {
-	private static final Logger logger = LoggerFactory.getLogger(FrescoApplication.class);
-	public static void main(String[] args) {
-		logger.info("Starting application");
-		SpringApplication.run(FrescoApplication.class, args);
-	}
+    private static final Logger logger = LoggerFactory.getLogger(FrescoApplication.class);
+
+    public static void main(String[] args) {
+        logger.info("Starting application");
+        SpringApplication.run(FrescoApplication.class, args);
+    }
 }

@@ -5,7 +5,6 @@ import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
 import com.suhailkandanur.fresco.dataaccess.StoreRepository;
 import com.suhailkandanur.fresco.entity.Document;
-import com.suhailkandanur.fresco.entity.DocumentVersion;
 import com.suhailkandanur.fresco.entity.Repository;
 import com.suhailkandanur.fresco.entity.Store;
 import com.suhailkandanur.fresco.service.StorageService;
@@ -37,7 +36,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public String getRootPath(Repository repository) {
-        if(repository == null) {
+        if (repository == null) {
             return null;
         }
         Repository repo = frescoRepoRepository.findOne(repository.getId());
@@ -46,7 +45,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public String getRootPath(Store store) {
-        if(store == null) {
+        if (store == null) {
             return null;
         }
         String repositoryId = store.getRepositoryId();
@@ -56,7 +55,7 @@ public class StorageServiceImpl implements StorageService {
 
     @Override
     public String getRootPath(Document document) {
-        if(document == null)
+        if (document == null)
             return null;
         Store store = storeRepository.findOne(document.getStoreId());
         return Paths.get(getRootPath(store), document.getStoreId(), "documents").toString();
@@ -80,7 +79,7 @@ public class StorageServiceImpl implements StorageService {
             return null;
         }
         Store store = storeRepository.findOne(storeId);
-        if(store == null) {
+        if (store == null) {
             logger.error("store not found for id '{}'", storeId);
             return null;
         }

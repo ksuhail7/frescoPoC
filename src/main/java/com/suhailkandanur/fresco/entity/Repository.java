@@ -32,6 +32,10 @@ public class Repository {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -45,8 +49,8 @@ public class Repository {
         return quota;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setQuota(long quota) {
+        this.quota = quota;
     }
 
     @JsonIgnore
@@ -73,10 +77,6 @@ public class Repository {
 
     public void setToken(String token) {
         this.token = token;
-    }
-
-    public void setQuota(long quota) {
-        this.quota = quota;
     }
 
     public String getId() {

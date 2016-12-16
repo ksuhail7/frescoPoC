@@ -16,7 +16,6 @@ import org.springframework.amqp.rabbit.annotation.Queue;
 import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -161,7 +159,7 @@ public class DocumentServiceImpl implements DocumentService {
     private void saveToDatabase(Document document, DocumentVersion documentVersion, boolean createNew) {
         DocumentVersion savedVersion = documentVersionRepository.save(documentVersion);
         Document savedDocument = null;
-        if(createNew) {
+        if (createNew) {
             savedDocument = documentRepository.save(document);
         }
         if ((createNew && savedDocument == null) || savedVersion == null) {

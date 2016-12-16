@@ -9,6 +9,8 @@ import java.util.List;
  */
 public interface DocumentVersionService {
     DocumentVersion getLatestDocumentVersion(String storeId, String docId);
+
     DocumentVersion getDocumentVersion(String storeId, String docId, long version);
+
     List<DocumentVersion> getDocumentVersions(String storeId, String docId);
 }

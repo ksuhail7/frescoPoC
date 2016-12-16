@@ -10,5 +10,6 @@ import java.util.List;
  */
 public interface DocumentVersionRepository extends MongoRepository<DocumentVersion, String> {
     DocumentVersion findDocumentVersionByStoreIdAndDocumentIdAndVersion(String storeId, String docId, long version);
+
     List<DocumentVersion> findDocumentVersionByStoreIdAndDocumentId(String storeId, String docId);
 }

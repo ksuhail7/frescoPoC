@@ -12,6 +12,12 @@ public class DocumentVersion {
 
     private String documentId;
     private String storeId;
+    private long version;
+    private String filename;
+    private long filesize;
+    private String token;
+    private String mimetype;
+    private String sha1;
 
     public String getStoreId() {
         return storeId;
@@ -21,9 +27,13 @@ public class DocumentVersion {
         this.storeId = storeId;
     }
 
-    private long version;
-    private String filename;
-    private long filesize;
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public String getId() {
         return id;
@@ -80,7 +90,4 @@ public class DocumentVersion {
     public void setSha1(String sha1) {
         this.sha1 = sha1;
     }
-
-    private String mimetype;
-    private String sha1;
 }

@@ -58,7 +58,7 @@ public class RepositoryServiceImpl {
 
             initializeRepositoryStorage(repository);
             writeEntryToDatabase(repository);
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             logger.error("error processing request, message: {}", ioe.getMessage());
             return;
         }
@@ -70,33 +70,33 @@ public class RepositoryServiceImpl {
 
         //TODO: lock the repository before continuing
         //Boolean status = repository.<Boolean>withLockOn(() -> {
-            try {
-                String repositoryRootPathStr = storageService.getRootPath(repository);
-                Path repositoryRoot = Paths.get(repositoryRootPathStr);
-                if (repositoryRoot != null && Files.notExists(repositoryRoot.getParent().getParent())) {
-                    logger.error("root file system path '{}' does not exist", repositoryRoot.getParent().getParent());
-                    return false;
-                }
-
-                Path repositoryPath = repositoryRoot.resolve(repository.getName());
-
-                if (Files.exists(repositoryPath)) {
-                    logger.error("repository root directory '{}' already exists, cannot create repository on filesystem",
-                            repositoryPath);
-                    return false;
-                }
-                Files.createDirectories(repositoryPath);
-
-                Path storesRootPath = repositoryRoot.resolve("stores");
-                Files.createDirectories(storesRootPath);
-
-                //write meta.inf file
-                FileUtils.writeMetaInfFile(repositoryRoot, repository);
-             return true;
-            } catch (IOException ioe) {
-                logger.error("error while creating repository, message: {}", ioe.getMessage());
+        try {
+            String repositoryRootPathStr = storageService.getRootPath(repository);
+            Path repositoryRoot = Paths.get(repositoryRootPathStr);
+            if (repositoryRoot != null && Files.notExists(repositoryRoot.getParent().getParent())) {
+                logger.error("root file system path '{}' does not exist", repositoryRoot.getParent().getParent());
                 return false;
             }
+
+            Path repositoryPath = repositoryRoot.resolve(repository.getName());
+
+            if (Files.exists(repositoryPath)) {
+                logger.error("repository root directory '{}' already exists, cannot create repository on filesystem",
+                        repositoryPath);
+                return false;
+            }
+            Files.createDirectories(repositoryPath);
+
+            Path storesRootPath = repositoryRoot.resolve("stores");
+            Files.createDirectories(storesRootPath);
+
+            //write meta.inf file
+            FileUtils.writeMetaInfFile(repositoryRoot, repository);
+            return true;
+        } catch (IOException ioe) {
+            logger.error("error while creating repository, message: {}", ioe.getMessage());
+            return false;
+        }
         //});
     }
 
