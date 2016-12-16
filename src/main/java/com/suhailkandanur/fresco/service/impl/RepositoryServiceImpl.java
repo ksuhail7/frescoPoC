@@ -28,16 +28,13 @@ import java.util.Objects;
 @Service
 public class RepositoryServiceImpl {
 
+    private static final Logger logger = LoggerFactory.getLogger(RepositoryServiceImpl.class);
     @Autowired
     private FrescoConfiguration configuration;
-
     @Autowired
     private FrescoRepoRepository repositoryDAO;
-
     @Autowired
     private StorageService storageService;
-
-    private static final Logger logger = LoggerFactory.getLogger(RepositoryServiceImpl.class);
 
     @Transactional
     @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-repository-request", durable = "true"), exchange = @Exchange(value = "fresco", type = "direct"), key = "repository"))
@@ -67,7 +64,7 @@ public class RepositoryServiceImpl {
     boolean initializeRepositoryStorage(Repository repository) throws Exception {
         Objects.requireNonNull(repository);
 
-
+        logger.info("initializing storage for repository '{}'", repository.getName());
         //TODO: lock the repository before continuing
         //Boolean status = repository.<Boolean>withLockOn(() -> {
         try {
@@ -86,12 +83,14 @@ public class RepositoryServiceImpl {
                 return false;
             }
             Files.createDirectories(repositoryPath);
+            logger.info("created repository path '{}'", repositoryPath);
 
-            Path storesRootPath = repositoryRoot.resolve("stores");
+            Path storesRootPath = repositoryPath.resolve("stores");
             Files.createDirectories(storesRootPath);
-
+            logger.info("created directory '{}' for stores", storesRootPath);
             //write meta.inf file
-            FileUtils.writeMetaInfFile(repositoryRoot, repository);
+            Path metaInfFile = FileUtils.writeMetaInfFile(repositoryPath, repository);
+            logger.info("meta.inf file '{}' created", metaInfFile);
             return true;
         } catch (IOException ioe) {
             logger.error("error while creating repository, message: {}", ioe.getMessage());

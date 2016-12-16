@@ -1,5 +1,6 @@
 package com.suhailkandanur.fresco.service.impl;
 
+import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.dataaccess.FrescoRepoRepository;
@@ -34,13 +35,19 @@ public class StorageServiceImpl implements StorageService {
     @Autowired
     private DocumentVersionRepository documentVersionRepository;
 
+    @Autowired
+    private FrescoConfiguration frescoConfiguration;
+
     @Override
     public String getRootPath(Repository repository) {
-        if (repository == null) {
-            return null;
+        String rootPath = null;
+        if (repository != null && repository.getId() != null) {
+            Repository repo = frescoRepoRepository.findOne(repository.getId());
+            rootPath = (repo == null) ? null : repo.getRootPath();
         }
-        Repository repo = frescoRepoRepository.findOne(repository.getId());
-        return repo == null ? null : repo.getRootPath();
+        if (rootPath == null)
+            rootPath = Paths.get(frescoConfiguration.getFileSystem(), "fresco").toString();
+        return rootPath;
     }
 
     @Override

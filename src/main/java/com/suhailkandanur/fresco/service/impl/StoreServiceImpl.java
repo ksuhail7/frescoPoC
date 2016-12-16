@@ -57,11 +57,18 @@ public class StoreServiceImpl {
             initializeStoreStorage(store);
             writeEntryToDatabase(store);
         } catch (IOException ioe) {
+            logger.error("unable to create store, error: {}", ioe.getMessage());
+            ioe.printStackTrace();
             return;
         }
     }
 
     public void initializeStoreStorage(Store store) throws IOException {
+        if (store == null) {
+            logger.error("supplied store object is null, cannot initialize storage");
+            return;
+        }
+        logger.info("initializing storage for store '{}'", store.getName());
         String rootPathStr = storageService.getRootPath(store);
         Path storeRootPath = Paths.get(rootPathStr);
         if (Files.notExists(storeRootPath)) {
@@ -75,6 +82,15 @@ public class StoreServiceImpl {
             throw new IOException("store already exists");
         }
         Files.createDirectories(storePath);
+        logger.info("store path '{}' created", storePath);
+
+
+        Path documentsRootPath = storePath.resolve("documents");
+        Files.createDirectories(documentsRootPath);
+        logger.info("documents folder '{}' created for store '{}'", documentsRootPath, store.getName());
+        Path objectsRootPath = storePath.resolve("objects");
+        Files.createDirectories(objectsRootPath);
+        logger.info("objects folder '{}' created for store '{}'", objectsRootPath, store.getName());
 
         Path metaInfFile = FileUtils.writeMetaInfFile(storePath, store);
         //just make sure the meta.inf file is created
@@ -82,11 +98,8 @@ public class StoreServiceImpl {
             logger.error("store meta.inf file not created for unknown reasons");
             throw new IOException("unable to create meta.inf file for store");
         }
-
-        Path documentsRootPath = storePath.resolve("documents");
-        Files.createDirectories(documentsRootPath);
-        Path objectsRootPath = storePath.resolve("objects");
-        Files.createDirectories(objectsRootPath);
+        logger.info("meta.inf file '{}' created", metaInfFile);
+        logger.info("storage initialization complete for store '{}'", store.getName());
     }
 
     public void writeEntryToDatabase(Store store) {
