@@ -3,6 +3,7 @@ package com.suhailkandanur.fresco.restcontroller;
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
+import com.suhailkandanur.fresco.service.DocumentService;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.apache.http.HttpStatus;
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -46,6 +47,9 @@ public class DocumentController {
     @Autowired
     private FrescoConfiguration configuration;
 
+    @Autowired
+    private DocumentService documentService;
+
     @GetMapping("/document/{storeId}/{docId}")
     public List<Document> getDocumentDetails(@PathVariable String storeId, @PathVariable String docId) {
         throw new NotImplementedException();
@@ -54,7 +58,7 @@ public class DocumentController {
 
     @GetMapping("/document/{storeId}/{docId}/{version}")
     public Document getDocumentVersionDetails(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version) {
-        return documentRepository.findDocumentByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
+        return documentService.findDocumentByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
     }
 
     @GetMapping()
@@ -93,37 +97,7 @@ public class DocumentController {
         logger.info("document version creation (post request with file upload) handler entry point");
         //input validation
         try {
-<<<<<<< HEAD
-            String stagingLocation = configuration.getTempStagingDirection();
-            Path stagingPath = Paths.get(stagingLocation);
-            if (Files.notExists(stagingPath)) {
-                logger.info("staging directory '{}' does not exist, attempting to create one", stagingLocation);
-                Files.createDirectories(stagingPath);
-            }
-            Path outputFile = Files.createTempFile(stagingPath, "fresco-", ".bin");
-            Files.copy(file.getInputStream(), outputFile, StandardCopyOption.REPLACE_EXISTING);
-            String token = UUID.randomUUID().toString();
-            Map<String, String> requestParamsMap = new HashMap<>();
-            requestParamsMap.put("storeId", storeId);
-            requestParamsMap.put("docId", docId);
-            requestParamsMap.put("fileLocation", outputFile.toString());
-            requestParamsMap.put("fileName", file.getOriginalFilename());
-            requestParamsMap.put("token", token);
-            String version = Long.toString(System.currentTimeMillis());
-            requestParamsMap.put("version", version);
-            logger.info("sending message to 'fresco' exchange for async processing");
-            rabbitTemplate.convertAndSend("fresco",
-                    "document-create",
-                    JsonUtils.convertObjectToJsonStr(requestParamsMap));
-            Map<String, String> response = new HashMap<>();
-            response.put("storeId", storeId);
-            response.put("docId", docId);
-            response.put("token", token);
-            response.put("version", version);
-            return response;
-=======
             return handleFileUpload(storeId, docId, file, "document-create");
->>>>>>> 5b68ec8898937161cecb09049e4ec8c064e1e3c9
         } catch (IOException ioe) {
             logger.error("unable to handle uploaded file content, error: {}", ioe.getMessage());
             response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unable to document creation request");

@@ -15,7 +15,7 @@ public class Repository {
     private long quota;
     private boolean created;
     private String rootPath;
-    private String refToken;
+    private String token;
 
     public Repository(String name, String description, long quota) {
         this.name = name;
@@ -67,12 +67,12 @@ public class Repository {
         this.created = created;
     }
 
-    public String getRefToken() {
-        return refToken;
+    public String getToken() {
+        return token;
     }
 
-    public void setRefToken(String refToken) {
-        this.refToken = refToken;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public void setQuota(long quota) {

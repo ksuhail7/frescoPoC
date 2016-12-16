@@ -46,7 +46,7 @@ public class RepositoryController {
         Repository repo = new Repository();
         repo.setName(name);
         repo.setDescription(description);
-        repo.setRefToken(token);
+        repo.setToken(token);
         String requestJson = objectMapper.writeValueAsString(repo);
         rabbitTemplate.convertAndSend("fresco", "repository", requestJson);
         return repo;

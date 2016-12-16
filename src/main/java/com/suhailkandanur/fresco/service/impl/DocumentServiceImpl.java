@@ -4,6 +4,7 @@ import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.entity.Document;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
+import com.suhailkandanur.fresco.service.DocumentService;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.ChecksumUtils;
 import com.suhailkandanur.fresco.util.FileUtils;
@@ -19,6 +20,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,7 +34,7 @@ import java.util.Map;
  * Created by suhail on 2016-12-09.
  */
 @Service
-public class DocumentServiceImpl {
+public class DocumentServiceImpl implements DocumentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
@@ -63,16 +65,44 @@ public class DocumentServiceImpl {
             return;
         }
 
+        handleDocumentVersionCreation(requestParams, true);
+    }
+
+    @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-document-upd-request", durable = "true"),
+            exchange = @Exchange(value = "fresco", type = "direct"), key = "document-update"))
+    public void processUpdateRequest(String message) throws IOException {
+        logger.info("received document update request, message: {}", message);
+        Map<String, String> requestParams = JsonUtils.convertStrToJson(message, Map.class);
+        if (requestParams == null || requestParams.get("documentId") == null || requestParams.get("storeId") == null) {
+            logger.error("unable to construct document object from request, cannot update document");
+            return;
+        }
+        String storeId = requestParams.get("storeId");
+        String documentId = requestParams.get("documentId");
+        Document existing = documentRepository.findDocumentByStoreIdAndDocumentId(storeId, documentId);
+        if (existing == null) {
+            logger.error("document not found for given store id {} and docid {}, cannot update the document, do you intend to create a new one?",
+                    storeId, documentId);
+            return;
+        }
+        handleDocumentVersionCreation(requestParams, false);
+    }
+
+    private void handleDocumentVersionCreation(Map<String, String> requestParams, boolean createNew) throws IOException {
+        String docId = requestParams.get("documentId");
+        String storeId = requestParams.get("storeId");
         String docIdSha1 = ChecksumUtils.sha1(docId);
         String token = requestParams.get("token");
 
         Document documentObj = new Document(storeId, docId, docIdSha1, token);
 
-        boolean status = initializeDocumentStorage(documentObj);
-        if(!status) {
-            //document storage not initialized
-            logger.error("unable to initialize document storage, cannot proceed");
-            return;
+        if (createNew) {
+            boolean status = initializeDocumentStorage(documentObj);
+            if (!status) {
+                //document storage not initialized
+                logger.error("unable to initialize document storage, cannot proceed");
+                return;
+            }
         }
         String fileLocation = requestParams.get("fileLocation");
         String fileName = requestParams.get("fileName");
@@ -89,38 +119,18 @@ public class DocumentServiceImpl {
         documentVersionObj.setMimetype(mimeType);
         documentVersionObj.setVersion(version);
         documentVersionObj.setFilesize(Files.size(filePath));
-        status = createDocumentVersionOnStorage(documentVersionObj, filePath);
+        boolean status = createDocumentVersionOnStorage(documentVersionObj, filePath);
         if (!status) {
             logger.error("cannot create document on filesystem, document create request failed");
             return;
         }
-        saveToDatabase(documentObj, documentVersionObj);
-    }
-
-    @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "fresco-document-upd-request", durable = "true"),
-            exchange = @Exchange(value = "fresco", type = "direct"), key = "document-update"))
-    public void processUpdateRequest(String message) throws IOException {
-        logger.info("received document update request, message: {}", message);
-        Document doc = JsonUtils.convertStrToJson(message, Document.class);
-        if (doc == null || doc.getDocumentId() == null || doc.getStoreId() == null) {
-            logger.error("unable to construct document object from request, cannot update document");
-            return;
-        }
-        Document existing = documentRepository.findOne(doc.getDocumentId());
-        if (existing == null || !doc.getStoreId().equals(existing.getStoreId())) {
-            logger.error("document not found for given store id {} and docid {}, cannot update the document, do you intend to create a new one?", doc.getDocumentId(), doc.getStoreId());
-            return;
-        }
-    }
-
-    private void handleDocumentVersionCreation(Map<String, String> requestParams, boolean updateOnly) {
-
+        saveToDatabase(documentObj, documentVersionObj, createNew);
     }
 
     private boolean initializeDocumentStorage(Document document) {
         if (document == null || document.getStoreId() == null || document.getDocumentId() == null) {
             logger.error("document is null, cannot initialize storage");
-             return false;
+            return false;
         }
         String rootPathStr = storageService.getDocumentsRootPath(document.getStoreId());
         Path rootPath = Paths.get(rootPathStr);
@@ -148,12 +158,14 @@ public class DocumentServiceImpl {
     }
 
     @Transactional
-    private void saveToDatabase(Document document, DocumentVersion documentVersion) {
+    private void saveToDatabase(Document document, DocumentVersion documentVersion, boolean createNew) {
         DocumentVersion savedVersion = documentVersionRepository.save(documentVersion);
-        Document savedDocument = documentRepository.save(document);
-        if (savedDocument == null || savedVersion == null) {
+        Document savedDocument = null;
+        if(createNew) {
+            savedDocument = documentRepository.save(document);
+        }
+        if ((createNew && savedDocument == null) || savedVersion == null) {
             throw new DataRetrievalFailureException("unable to save document and its corresponding version in database, transaction will be rolled back");
-
         }
     }
 
@@ -199,9 +211,14 @@ public class DocumentServiceImpl {
             return false;
         }
         Path parentPath = versionPath.getParent();
-        if(Files.notExists(parentPath)) Files.createDirectories(parentPath);
+        if (Files.notExists(parentPath)) Files.createDirectories(parentPath);
         FileUtils.writeToFile(versionPath, JsonUtils.convertObjectToJsonStr(documentVersion));
         logger.info("created the version file '{}'", versionPath);
         return true;
+    }
+
+    @Override
+    public Document findDocumentByStoreIdAndDocumentIdAndVersion(String storeId, String docId, long version) {
+        throw new NotImplementedException();
     }
 }

@@ -10,6 +10,5 @@ import java.util.List;
  */
 public interface DocumentRepository extends MongoRepository<Document, String> {
     Document findDocumentByStoreIdAndDocumentId(String storeId, String docId);
-    Document findDocumentByStoreIdAndDocumentIdAndVersion(String storeId, String docId, long version);
     List<Document> findDocumentByStoreId(String storeId);
 }

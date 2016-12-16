@@ -12,13 +12,13 @@ public class Store {
     private String name;
     private String description;
     private String repositoryId;
-    private String refToken;
+    private String token;
 
-    public Store(String name, String description, String repositoryId, String refToken) {
+    public Store(String name, String description, String repositoryId, String token) {
         this.name = name;
         this.description = description;
         this.repositoryId = repositoryId;
-        this.refToken = refToken;
+        this.token = token;
     }
 
     public Store(String name, String description, String repositoryId) {
@@ -39,8 +39,8 @@ public class Store {
         return repositoryId;
     }
 
-    public String getRefToken() {
-        return refToken;
+    public String getToken() {
+        return token;
     }
 
     public void setName(String name) {
@@ -59,7 +59,7 @@ public class Store {
         this.repositoryId = repositoryId;
     }
 
-    public void setRefToken(String refToken) {
-        this.refToken = refToken;
+    public void setToken(String token) {
+        this.token = token;
     }
 }
