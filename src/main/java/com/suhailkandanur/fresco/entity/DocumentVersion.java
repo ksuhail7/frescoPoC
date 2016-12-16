@@ -1,5 +1,6 @@
 package com.suhailkandanur.fresco.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 
 /**
@@ -27,6 +28,7 @@ public class DocumentVersion {
         this.storeId = storeId;
     }
 
+    @JsonIgnore
     public String getToken() {
         return token;
     }
@@ -35,6 +37,7 @@ public class DocumentVersion {
         this.token = token;
     }
 
+    @JsonIgnore
     public String getId() {
         return id;
     }

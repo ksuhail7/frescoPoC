@@ -3,7 +3,9 @@ package com.suhailkandanur.fresco.service.impl;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.dataaccess.DocumentVersionRepository;
 import com.suhailkandanur.fresco.entity.Document;
+import com.suhailkandanur.fresco.entity.DocumentDetails;
 import com.suhailkandanur.fresco.entity.DocumentVersion;
+import com.suhailkandanur.fresco.entity.FileObjectReference;
 import com.suhailkandanur.fresco.service.DocumentService;
 import com.suhailkandanur.fresco.service.StorageService;
 import com.suhailkandanur.fresco.util.ChecksumUtils;
@@ -26,7 +28,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by suhail on 2016-12-09.
@@ -218,5 +223,61 @@ public class DocumentServiceImpl implements DocumentService {
     @Override
     public Document findDocumentByStoreIdAndDocumentIdAndVersion(String storeId, String docId, long version) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public DocumentDetails getDocumentDetails(String storeId, String docId) {
+        Document document = documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
+        List<DocumentVersion> documentVersions = documentVersionRepository.findDocumentVersionByStoreIdAndDocumentId(storeId, docId);
+        if (document != null && documentVersions != null) {
+            DocumentDetails details = new DocumentDetails(storeId, docId);
+            details.setVersionCount(documentVersions.size());
+            details.setVersions(documentVersions.stream()
+                    .map(DocumentVersion::getVersion)
+                    .collect(Collectors.toList()));
+            return details;
+        } else {
+            logger.error("no document found for store id {} and doc id {}", storeId, docId);
+        }
+        return null;
+    }
+
+    @Override
+    public DocumentVersion getDocumentVersionDetails(String storeId, String docId, long version) {
+        return documentVersionRepository.findDocumentVersionByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
+    }
+
+    @Override
+    public FileObjectReference getFileObjectReference(String storeId, String docId) {
+        List<DocumentVersion> documentVersions = documentVersionRepository.findDocumentVersionByStoreIdAndDocumentId(storeId, docId);
+        if (documentVersions != null && documentVersions.size() > 0) {
+            //find the latest version
+            DocumentVersion versionLatest = documentVersions.stream()
+                    .max(Comparator.comparing(DocumentVersion::getVersion))
+                    .get();
+            return getFileObjectReference(versionLatest);
+        }
+        return null;
+    }
+
+    @Override
+    public FileObjectReference getFileObjectReference(String storeId, String docId, long version) {
+        DocumentVersion documentVersion = documentVersionRepository.findDocumentVersionByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
+        return getFileObjectReference(documentVersion);
+    }
+
+    private FileObjectReference getFileObjectReference(DocumentVersion documentVersion) {
+        if (documentVersion != null) {
+            String mimeType = documentVersion.getMimetype();
+            String objectsRootPath = storageService.getObjectsRootPath(documentVersion.getStoreId());
+            String sha1 = documentVersion.getSha1();
+            String fileLocation = Paths.get(objectsRootPath, sha1.substring(0, 2), sha1.substring(2, 6), sha1.substring(6))
+                    .toString();
+            FileObjectReference reference = new FileObjectReference(fileLocation, mimeType);
+            return reference;
+        } else {
+            logger.error("unable to determine the requested file version");
+        }
+        return null;
     }
 }

@@ -3,22 +3,26 @@ package com.suhailkandanur.fresco.restcontroller;
 import com.suhailkandanur.fresco.configuration.FrescoConfiguration;
 import com.suhailkandanur.fresco.dataaccess.DocumentRepository;
 import com.suhailkandanur.fresco.entity.Document;
+import com.suhailkandanur.fresco.entity.DocumentDetails;
+import com.suhailkandanur.fresco.entity.DocumentVersion;
+import com.suhailkandanur.fresco.entity.FileObjectReference;
 import com.suhailkandanur.fresco.service.DocumentService;
 import com.suhailkandanur.fresco.util.JsonUtils;
 import org.apache.http.HttpStatus;
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,44 +54,63 @@ public class DocumentController {
     private DocumentService documentService;
 
     @GetMapping("/document/{storeId}/{docId}")
-    public List<Document> getDocumentDetails(@PathVariable String storeId, @PathVariable String docId) {
-        throw new NotImplementedException();
-        // return documentRepository.findDocumentByStoreIdAndDocumentId(storeId, docId);
+    public DocumentDetails getDocumentDetails(@PathVariable String storeId, @PathVariable String docId) {
+        logger.debug("getting document details for doc id {} in store {}", docId, storeId);
+        return documentService.getDocumentDetails(storeId, docId);
     }
 
     @GetMapping("/document/{storeId}/{docId}/{version}")
-    public Document getDocumentVersionDetails(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version) {
-        return documentService.findDocumentByStoreIdAndDocumentIdAndVersion(storeId, docId, version);
+    public DocumentVersion getDocumentVersionDetails(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version) {
+        return documentService.getDocumentVersionDetails(storeId, docId, version);
     }
 
-    @GetMapping()
-    public List<Document> getAllDocumentsInStore(@PathVariable String storeId) {
+    @GetMapping("/document/{storeId}")
+    public List<Document> getDocumentsInStore(@PathVariable String storeId) {
         return documentRepository.findDocumentByStoreId(storeId);
     }
 
     @GetMapping("/document/{storeId}/{docId}/retrieve")
-    public void retrieveLatestDocument(@PathVariable String storeId, @PathVariable String docId, HttpServletResponse response) {
+    @ResponseBody
+    public ResponseEntity<Resource> retrieveLatestDocument(@PathVariable String storeId, @PathVariable String docId, HttpServletResponse response) throws IOException {
+        FileObjectReference fileObjectReference = documentService.getFileObjectReference(storeId, docId);
+        return streamDocument(fileObjectReference, response);
 
-        InputStream inputStream = null;
-        try {
-            IOUtils.copy(inputStream, response.getOutputStream());
-            response.flushBuffer();
-        } catch (IOException e) {
-            logger.error("unable to stream file, exception: {}", e.getMessage());
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException ioe) {
-                    logger.error("unable to close input stream, exception: {}", ioe.getMessage());
-                }
-            }
-        }
     }
 
     @GetMapping("/document/{storeId}/{docId}/{version}/retrieve")
-    public void retrieveDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version, HttpServletResponse response) {
-        throw new NotImplementedException(); //TODO: implementation pending
+    @ResponseBody
+    public ResponseEntity<Resource> retrieveDocumentVersion(@PathVariable String storeId, @PathVariable String docId, @PathVariable long version, HttpServletResponse response) throws IOException {
+        FileObjectReference fileObjectReference = documentService.getFileObjectReference(storeId, docId, version);
+        return streamDocument(fileObjectReference, response);
+    }
+
+    private ResponseEntity<Resource> streamDocument(FileObjectReference reference, HttpServletResponse response) throws IOException {
+        if (reference == null) {
+            String msg = "requested file not found/cannot be served";
+            logger.error(msg);
+            response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, msg);
+            return null;
+        }
+        Path filePath = Paths.get(reference.getFileLocation());
+        Resource fileResource = new UrlResource(filePath.toUri());
+        try {
+            if (fileResource != null && fileResource.exists() && fileResource.isReadable()) {
+                return ResponseEntity
+                        .ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileResource.getFilename() + "\"")
+                        .header(HttpHeaders.CONTENT_TYPE, reference.getMimeType())
+                        .body(fileResource);
+            } else {
+                logger.error("unable to read file {}", reference.getFileLocation());
+                response.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, "unable to read file for streaming");
+                return null;
+            }
+        } catch (IOException e) {
+            logger.error("unable to stream file, exception: {}", e.getMessage());
+        } finally {
+
+        }
+        return null;
     }
 
     @PostMapping(value = "/document/{storeId}/{docId}/upload", headers = "content-type=multipart/form-data")
@@ -152,7 +175,7 @@ public class DocumentController {
         String token = UUID.randomUUID().toString();
         Map<String, String> requestParamsMap = new HashMap<>();
         requestParamsMap.put("storeId", storeId);
-        requestParamsMap.put("docId", docId);
+        requestParamsMap.put("documentId", docId);
         requestParamsMap.put("fileLocation", outputFile.toString());
         requestParamsMap.put("fileName", file.getOriginalFilename());
         requestParamsMap.put("token", token);
@@ -164,15 +187,12 @@ public class DocumentController {
                 JsonUtils.convertObjectToJsonStr(requestParamsMap));
         Map<String, String> responseObj = new HashMap<>();
         responseObj.put("storeId", storeId);
-        responseObj.put("docId", docId);
+        responseObj.put("documentId", docId);
         responseObj.put("token", token);
         responseObj.put("version", version);
-        responseObj.put("filename", file.getOriginalFilename());
+        responseObj.put("fileName", file.getOriginalFilename());
         return responseObj;
     }
 
-    @GetMapping("/document/{storeId}")
-    public List<Document> getDocumentsInStore(@PathVariable String storeId) {
-        return documentRepository.findDocumentByStoreId(storeId);
-    }
+
 }

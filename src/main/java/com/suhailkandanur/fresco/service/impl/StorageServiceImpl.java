@@ -57,7 +57,7 @@ public class StorageServiceImpl implements StorageService {
         }
         String repositoryId = store.getRepositoryId();
         Repository repo = frescoRepoRepository.findOne(repositoryId);
-        return repo == null ? null : Paths.get(repo.getRootPath(), "stores").toString();
+        return repo == null ? null : Paths.get(repo.getRootPath(), "stores", store.getName()).toString();
     }
 
     @Override
