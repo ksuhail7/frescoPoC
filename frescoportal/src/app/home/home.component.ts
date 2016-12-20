@@ -1,17 +1,17 @@
 import {Component, OnInit} from '@angular/core';
 import {Repository} from "./repository";
 
-import {RepositoryService} from './repo.service';
+import {HomeService} from './home.service';
 import {Router} from "@angular/router";
 
 @Component({
-  selector: 'repo-component',
-  templateUrl: './repo.component.html',
-  styleUrls: ['./repo.component.css']
+  selector: 'home-component',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
 })
-export class RepositoryComponent implements OnInit {
+export class HomeComponent implements OnInit {
 
-  constructor(private repoService: RepositoryService) {}
+  constructor(private homeService: HomeService) {}
   submitted = false;
   repositories: Repository[];
 
@@ -23,7 +23,7 @@ export class RepositoryComponent implements OnInit {
 
   onSubmit() {
     this.submitted = true;
-    this.repoService.create(this.model)
+    this.homeService.create(this.model)
     .then(repo => {
       console.debug('repository added ', repo);
       this.repositories.push(repo);
@@ -39,7 +39,7 @@ export class RepositoryComponent implements OnInit {
   }
 
   getAllRepositories(): void {
-    this.repoService
+    this.homeService
       .getAllRepositories()
       .then(repos => {
         console.debug('repository list ', repos);

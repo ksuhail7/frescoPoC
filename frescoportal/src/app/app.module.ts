@@ -2,11 +2,13 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import { RouterModule } from '@angular/router';
 
 import { AppComponent } from './app.component';
-import {RepositoryComponent} from './repository/repo.component';
+import {HomeComponent} from './home/home.component';
+import {RepositoryComponent} from './repository/repository.component';
 
-import {RepositoryService} from './repository/repo.service';
+import {HomeService} from './home/home.service';
 import {AppRoutingModule} from "./app-routing.module";
 
 import './rxjs-extensions';
@@ -16,16 +18,27 @@ import {StoreService} from "./store/store.service";
 @NgModule({
   declarations: [
     AppComponent,
-    RepositoryComponent,
-    StoreComponent
+    HomeComponent,
+    StoreComponent,
+    RepositoryComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpModule,
-    AppRoutingModule
+    AppRoutingModule,
+    RouterModule.forRoot([
+{
+  path: 'repository',
+  component: RepositoryComponent
+},
+{
+  path: 'store',
+  component: StoreComponent
+}
+ ])
   ],
-  providers: [RepositoryService, StoreService],
+  providers: [HomeService, StoreService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

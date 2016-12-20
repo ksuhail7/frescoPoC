@@ -6,7 +6,7 @@ import {Repository} from './repository';
 import 'rxjs/add/operator/toPromise';
 
 @Injectable()
-export class RepositoryService {
+export class HomeService {
 
   constructor(private http: Http) {}
 
